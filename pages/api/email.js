@@ -82,6 +82,7 @@ const getEmails = () => {
                 simpleParser(stream, async (err, parsed) => {
                   // const {from, subject, textAsHtml, text} = parsed;
                   if (parsed.text.includes("StockX")) {
+                      console.log("found a stockX email...")
                     let _largeScaleParse = largeScaleParse(parsed.text)
                     let _fineParse = fineParse(_largeScaleParse)
                     console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
