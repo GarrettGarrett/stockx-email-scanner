@@ -3,7 +3,7 @@ const {simpleParser} = require('mailparser');
 const imapConfig = {
   user: process.env.GMAIL_USER,
   password: process.env.PASSWORD,
-  host: 'imap.gmail.com',
+  host: 'imap.googlemail.com',
   port: 993,
   tls: true,
   tlsOptions: { rejectUnauthorized: false }
@@ -73,7 +73,6 @@ let finalStatus = 0
 const getEmails = () => {
     try {
       const imap = new Imap(imapConfig, );
-      console.log("logged in",process.env.GMAIL_USER, process.env.PASSWORD )
       imap.once('ready', () => {
         imap.openBox('INBOX', false, () => {
           imap.search(['UNSEEN', ['SINCE', new Date()]], (err, results) => {
