@@ -119,7 +119,7 @@ const getEmails = () => {
   
       imap.once('end', () => {
         console.log('Connection ended');
-
+        return res.status(200).json({ data: "ok" })
       });
   
       imap.connect();
@@ -133,9 +133,9 @@ export default async (req, res) => {
     if (req.method === 'GET') {
         const emails = getEmails()
         
-        if (finalStatus > 0) {
-            return res.status(200).json({ data: "ok" })
-        }
+        // if (finalStatus > 0) {
+            
+        // }
                
           
         } 
