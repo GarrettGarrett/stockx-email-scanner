@@ -68,6 +68,8 @@ function fineParse(rawDetails, subject) {
 
 }
 
+let finalStatus = 0
+
 const getEmails = () => {
     try {
       const imap = new Imap(imapConfig, );
@@ -115,6 +117,7 @@ const getEmails = () => {
   
       imap.once('end', () => {
         console.log('Connection ended');
+        finalStatus = 1
       });
   
       imap.connect();
@@ -128,8 +131,10 @@ export default async (req, res) => {
     if (req.method === 'GET') {
         const emails = getEmails()
         
-       
-                return res.status(200).json({ data: "ok" })
+        if (finalStatus > 0) {
+            return res.status(200).json({ data: "ok" })
+        }
+               
           
         } 
     }
