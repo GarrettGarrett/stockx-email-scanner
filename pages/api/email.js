@@ -81,10 +81,13 @@ const getEmails = () => {
               msg.on('body', stream => {
                 simpleParser(stream, async (err, parsed) => {
                   // const {from, subject, textAsHtml, text} = parsed;
-                //   console.log(parsed.text);
-                  let _largeScaleParse = largeScaleParse(parsed.text)
-                  let _fineParse = fineParse(_largeScaleParse)
-                  console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
+                  if (parsed.text.includes("StockX")) {
+                    let _largeScaleParse = largeScaleParse(parsed.text)
+                    let _fineParse = fineParse(_largeScaleParse)
+                    console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
+                    
+                  } 
+                  finalStatus = 1
                   /* Make API call to save the data
                      Save the retrieved data into a database.
                      E.t.c
@@ -116,7 +119,7 @@ const getEmails = () => {
   
       imap.once('end', () => {
         console.log('Connection ended');
-        finalStatus = 1
+
       });
   
       imap.connect();
