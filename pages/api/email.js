@@ -2,7 +2,7 @@ const Imap = require('imap');
 const {simpleParser} = require('mailparser');
 const imapConfig = {
   user: process.env.GMAIL_USER,
-  password: process.env.PASSWORD,
+  password: process.env.APP_PASSWORD,
   host: 'imap.googlemail.com',
   port: 993,
   tls: true,
