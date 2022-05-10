@@ -4,6 +4,7 @@ module.exports = {
   env: {
     GMAIL_USER: process.env.GMAIL_USER,
     PASSWORD: process.env.PASSWORD,
+    APP_PASSWORD: process.env.APP_PASSWORD,
     
 
    },
