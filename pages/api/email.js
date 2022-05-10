@@ -71,6 +71,7 @@ function fineParse(rawDetails, subject) {
 const getEmails = () => {
     try {
       const imap = new Imap(imapConfig, );
+      console.log("logged in")
       imap.once('ready', () => {
         imap.openBox('INBOX', false, () => {
           imap.search(['UNSEEN', ['SINCE', new Date()]], (err, results) => {
