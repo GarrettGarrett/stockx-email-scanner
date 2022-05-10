@@ -128,7 +128,7 @@ export default async (req, res) => {
         const emails = getEmails()
         
        
-                return res.status(200).json({ ok })
+                return res.status(200).json({ data: "ok" })
           
         } 
     }
