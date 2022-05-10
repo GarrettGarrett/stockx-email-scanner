@@ -73,7 +73,7 @@ let finalStatus = 0
 const getEmails = () => {
     try {
       const imap = new Imap(imapConfig, );
-      console.log("logged in")
+      console.log("logged in",process.env.GMAIL_USER, process.env.PASSWORD )
       imap.once('ready', () => {
         imap.openBox('INBOX', false, () => {
           imap.search(['UNSEEN', ['SINCE', new Date()]], (err, results) => {
