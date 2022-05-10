@@ -115,6 +115,7 @@ const getEmails = () => {
   
       imap.once('error', err => {
         console.log(err);
+        return res.status(200).json({ data: err })
       });
   
       imap.once('end', () => {
