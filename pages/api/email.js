@@ -16,38 +16,76 @@ const updateSheets = async (_fineParse) => {
     await doc.loadInfo();
     let sheet = doc.sheetsByIndex[0];
     const rows = await sheet.getRows()
+
     
-        if (_fineParse.isDeliveredEmail){
+    
+        if (_fineParse.isDeliveredEmail){ //dealing with delivered entry
+            let deliveredEmailMatched = false
+            // check to see if a confirmed entry exists - fine if it doesnt.
             rows.forEach((row, index) => {
                 if (row['Order Number'] == _fineParse.orderNumber) {
                     rows[index]['isDeliveredEmail'] = _fineParse.isDeliveredEmail
                     rows[index].save()
                     console.log("sheet updated")
+                    deliveredEmailMatched = true
                 }
             })
-        } else {
-            const moreRows = await sheet.addRows([
-                { 
-                    "Style ID": _fineParse.styleID, 
-                    "Size": _fineParse.size, 
-                    "Title": _fineParse.title, 
-                    "Condition": _fineParse.condition, 
-                    "Order Number": _fineParse.orderNumber, 
-                    "Purchase Price": _fineParse.purchasePrice, 
-                    "Processing Fee": _fineParse.processingFee, 
-                    "Shipping": _fineParse.shipping, 
-                    "Total Payment": _fineParse.totalPayment, 
-                    "isConfirmedEmail": _fineParse.isConfirmedEmail, 
-                    "isDeliveredEmail": _fineParse.isDeliveredEmail, 
-                }])
-                console.log("sheet updated")
-        }
-    
+
+            if (!deliveredEmailMatched) {// if a confirmed entry does not exist, then insert one but label it for delivery
+                console.log("delivery email here, but no confirmation entry....creating confirm row and marking delivered")
+                const moreRows = await sheet.addRows([
+                    { 
+                        "Style ID": _fineParse.styleID, 
+                        "Size": _fineParse.size, 
+                        "Title": _fineParse.title, 
+                        "Condition": _fineParse.condition, 
+                        "Order Number": _fineParse.orderNumber, 
+                        "Purchase Price": _fineParse.purchasePrice, 
+                        "Processing Fee": _fineParse.processingFee, 
+                        "Shipping": _fineParse.shipping, 
+                        "Total Payment": _fineParse.totalPayment, 
+                        // "isConfirmedEmail": _fineParse.isConfirmedEmail, 
+                        "isDeliveredEmail": _fineParse.isDeliveredEmail, 
+                    }])
+                    
+                    console.log("sheet updated")
+            }
+
+        } else { //dealing with confirmed entry
+            let confirmedEmailMatched = false
+            // check to see if a confirmed entry exists - fine if it doesnt.
+            rows.forEach((row, index) => {
+                if (row['Order Number'] == _fineParse.orderNumber) {
+                    rows[index]['isConfirmedEmail'] = _fineParse.isConfirmedEmail
+                    rows[index].save()
+                    console.log("sheet updated")
+                    confirmedEmailMatched = true
+                }
+            })
+
+            if (!confirmedEmailMatched) {
+                console.log("confirmed email here, but no delivery entry....creating confirm row and marking confirmed")
+                const moreRows = await sheet.addRows([
+                    { 
+                        "Style ID": _fineParse.styleID, 
+                        "Size": _fineParse.size, 
+                        "Title": _fineParse.title, 
+                        "Condition": _fineParse.condition, 
+                        "Order Number": _fineParse.orderNumber, 
+                        "Purchase Price": _fineParse.purchasePrice, 
+                        "Processing Fee": _fineParse.processingFee, 
+                        "Shipping": _fineParse.shipping, 
+                        "Total Payment": _fineParse.totalPayment, 
+                        "isConfirmedEmail": _fineParse.isConfirmedEmail, 
+                        // "isDeliveredEmail": _fineParse.isDeliveredEmail, 
+                    }])
+                    console.log("sheet updated")
+            }
+            }
+
     rows.save
     return true
 };
-
-
 
 
 
@@ -119,6 +157,7 @@ function fineParse(rawDetails, subject) {
     if (rawDetails.subject.includes("Delivered")){
         fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Delivered:") + 11, rawDetails.subject.length)  
         fineDetails['isDeliveredEmail'] = true
+        fineDetails['isConfirmedEmail'] = true
     }
 
     return fineDetails
