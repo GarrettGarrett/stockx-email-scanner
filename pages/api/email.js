@@ -200,7 +200,7 @@ const getEmails = () => {
 export default async (req, res) => {
    
     if (req.method === 'GET') {
-        const emails = getEmails()
+        const emails = await getEmails()
         
         return res.status(200).json({ data: "ok" })
                
