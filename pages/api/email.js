@@ -124,7 +124,7 @@ function fineParse(rawDetails, subject) {
 
     return fineDetails
 
-}
+}//
 
 function oneMonthsAgo(){
     var d = new Date();
