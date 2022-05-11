@@ -57,9 +57,13 @@ const imapConfig = {
   host: 'imap.gmail.com',
   port: 993,
   tls: true,
-  tlsOptions: { rejectUnauthorized: false},
-  authTimeout: 15000
-};
+    authTimeout: 10000,
+    connTimeout: 30000,
+    keepalive: true,
+    tlsOptions: {
+    rejectUnauthorized: false
+}
+}
 console.log("🚀 ~ file: email.js ~ line 62 ~ imapConfig", imapConfig)
 
 
