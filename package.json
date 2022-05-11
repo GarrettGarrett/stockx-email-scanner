@@ -6,6 +6,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "fs": "^0.0.1-security",
+    "google-spreadsheet": "^3.2.0",
     "imap": "^0.8.19",
     "mailparser": "^3.5.0",
     "next": "latest",
