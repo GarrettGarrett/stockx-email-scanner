@@ -19,12 +19,12 @@ const updateSheets = async (_fineParse) => {
 
     
     
-        if (_fineParse.isDeliveredEmail){ //dealing with delivered entry
+        if (_fineParse.hasDeliveredEmail){ //dealing with delivered entry
             let deliveredEmailMatched = false
             // check to see if a confirmed entry exists - fine if it doesnt.
             rows.forEach((row, index) => {
                 if (row['Order Number'] == _fineParse.orderNumber) {
-                    rows[index]['isDeliveredEmail'] = _fineParse.isDeliveredEmail
+                    rows[index]['hasDeliveredEmail'] = _fineParse.hasDeliveredEmail
                     rows[index].save()
                     console.log("sheet updated")
                     deliveredEmailMatched = true
@@ -44,8 +44,8 @@ const updateSheets = async (_fineParse) => {
                         "Processing Fee": _fineParse.processingFee, 
                         "Shipping": _fineParse.shipping, 
                         "Total Payment": _fineParse.totalPayment, 
-                        // "isConfirmedEmail": _fineParse.isConfirmedEmail, 
-                        "isDeliveredEmail": _fineParse.isDeliveredEmail, 
+                        "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
+                        "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
                     }])
                     
                     console.log("sheet updated")
@@ -56,7 +56,7 @@ const updateSheets = async (_fineParse) => {
             // check to see if a confirmed entry exists - fine if it doesnt.
             rows.forEach((row, index) => {
                 if (row['Order Number'] == _fineParse.orderNumber) {
-                    rows[index]['isConfirmedEmail'] = _fineParse.isConfirmedEmail
+                    rows[index]['hasConfirmedEmail'] = _fineParse.hasConfirmedEmail
                     rows[index].save()
                     console.log("sheet updated")
                     confirmedEmailMatched = true
@@ -76,8 +76,8 @@ const updateSheets = async (_fineParse) => {
                         "Processing Fee": _fineParse.processingFee, 
                         "Shipping": _fineParse.shipping, 
                         "Total Payment": _fineParse.totalPayment, 
-                        "isConfirmedEmail": _fineParse.isConfirmedEmail, 
-                        // "isDeliveredEmail": _fineParse.isDeliveredEmail, 
+                        "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
+                        // "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
                     }])
                     console.log("sheet updated")
             }
@@ -152,12 +152,12 @@ function fineParse(rawDetails, subject) {
 
     if (rawDetails.subject.includes("Confirmed")){
         fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Confirmed:") + 11, rawDetails.subject.length)  
-        fineDetails['isConfirmedEmail'] = true
+        fineDetails['hasConfirmedEmail'] = true
     }
     if (rawDetails.subject.includes("Delivered")){
         fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Delivered:") + 11, rawDetails.subject.length)  
-        fineDetails['isDeliveredEmail'] = true
-        fineDetails['isConfirmedEmail'] = true
+        fineDetails['hasDeliveredEmail'] = true
+        fineDetails['hasConfirmedEmail'] = true
     }
 
     return fineDetails
