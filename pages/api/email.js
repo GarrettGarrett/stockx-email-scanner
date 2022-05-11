@@ -4,7 +4,7 @@ const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm 
 const fs = require('fs') // File handling package
 
 
-const RESPONSES_SHEET_ID = '1lp0xjsFK8mjBmWaT_ewUc8gySqrZ41ecpV8W9GeCpMU'; // spreadsheet key is the long id in the sheets URL
+const RESPONSES_SHEET_ID = '1gxQKq2KzFFirj-5aFaMLKBqgLA3d_8hhoEvAoKe8DCU'; // spreadsheet key is the long id in the sheets URL
 const doc = new GoogleSpreadsheet(RESPONSES_SHEET_ID); // const RESPONSES_SHEET_ID = '19lo-6eEXYmu_gw5FgyeVZJ9DoJblPQTVbVorSL1Ppus';
 
 const updateSheets = async (_fineParse) => {
