@@ -59,6 +59,8 @@ const imapConfig = {
   tls: true,
   tlsOptions: { rejectUnauthorized: false }
 };
+console.log("🚀 ~ file: email.js ~ line 62 ~ imapConfig", imapConfig)
+
 
 function largeScaleParse(_string){
     const splitByLine = _string.split(/\r?\n/)
@@ -129,7 +131,7 @@ let finalStatus = 0
 
 const getEmails = () => {
     try {
-      const imap = new Imap(imapConfig, );
+      const imap = new Imap(imapConfig);
       console.log("logged in")
       imap.once('ready', () => {
         console.log("ready")
