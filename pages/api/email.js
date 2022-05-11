@@ -128,7 +128,7 @@ function fineParse(rawDetails, subject) {
 
 function oneMonthsAgo(){
     var d = new Date();
-    d.setMonth(d.getMonth() - 1);
+    // d.setMonth(d.getMonth() - 1);
     return d
 }
 
