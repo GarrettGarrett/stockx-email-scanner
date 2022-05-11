@@ -132,6 +132,7 @@ const getEmails = () => {
       const imap = new Imap(imapConfig, );
       console.log("logged in")
       imap.once('ready', () => {
+        console.log("ready")
         imap.openBox('INBOX', false, () => {
           imap.search(['UNSEEN', ['SINCE', oneMonthsAgo()]], (err, results) => {
             const f = imap.fetch(results, {bodies: ''});
