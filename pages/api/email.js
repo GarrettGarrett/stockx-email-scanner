@@ -24,7 +24,7 @@ const updateSheets = async (_fineParse) => {
                     rows[index].save()
                     console.log("sheet updated")
                 }
-            })
+            })//
         } else {
             const moreRows = await sheet.addRows([
                 { 
