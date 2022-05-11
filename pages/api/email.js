@@ -132,6 +132,7 @@ let finalStatus = 0
 const getEmails = () => {
     try {
       const imap = new Imap(imapConfig);
+      console.log("🚀 ~ file: email.js ~ line 135 ~ getEmails ~ imap", imap)
       console.log("logged in")
       imap.once('ready', () => {
         console.log("ready")
