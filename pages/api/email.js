@@ -54,7 +54,7 @@ const updateSheets = async (_fineParse) => {
 const imapConfig = {
   user: process.env.GMAIL_USER,
   password: process.env.APP_PASSWORD,
-  host: 'imap.googlemail.com',
+  host: 'imap.gmail.com',
   port: 993,
   tls: true,
   tlsOptions: { rejectUnauthorized: false }
