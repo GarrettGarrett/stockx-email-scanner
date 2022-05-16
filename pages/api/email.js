@@ -2,6 +2,7 @@ const Imap = require('imap');
 const {simpleParser} = require('mailparser');
 const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm package
 const fs = require('fs') // File handling package
+import { sendWebhook } from '../../utils/Discord';
 
 
 const RESPONSES_SHEET_ID = '1gxQKq2KzFFirj-5aFaMLKBqgLA3d_8hhoEvAoKe8DCU'; // spreadsheet key is the long id in the sheets URL
@@ -185,10 +186,13 @@ const getEmails = () => {
                   // const {from, subject, textAsHtml, text} = parsed;
                   if (parsed?.text?.includes("StockX")) {
                       console.log("found a stockX email...")
+                     
                     let _largeScaleParse = largeScaleParse(parsed.text)
                     let _fineParse = fineParse(_largeScaleParse)
                     console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
                     const _updateSheets = await updateSheets(_fineParse)
+                    let sendDiscord = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
+                    console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscord", sendDiscord)
                   } 
                   finalStatus = 1
                   /* Make API call to save the data
