@@ -191,8 +191,12 @@ const getEmails = () => {
                     let _fineParse = fineParse(_largeScaleParse)
                     console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
                     const _updateSheets = await updateSheets(_fineParse)
-                    let sendDiscord = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
-                    console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscord", sendDiscord)
+                    let sendDiscordMe = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
+                    let sendDiscordHermes = await sendWebhook(_fineParse, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //hermes
+
+                    console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscordMe", sendDiscordMe)
+                    console.log("🚀 ~ file: email.js ~ line 196 ~ simpleParser ~ sendDiscordHermes", sendDiscordHermes)
+
                   } 
                   finalStatus = 1
                   /* Make API call to save the data
