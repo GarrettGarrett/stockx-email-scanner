@@ -26,13 +26,14 @@ const updateSheets = async (_fineParse) => {
             rows.forEach((row, index) => {
                 if (row['Order Number'] == _fineParse.orderNumber) {
                     rows[index]['hasDeliveredEmail'] = _fineParse.hasDeliveredEmail
+                    rows[index]['Delivery Date'] = _fineParse.date
                     rows[index].save()
                     console.log("sheet updated")
                     deliveredEmailMatched = true
                 }
             })
 
-            if (!deliveredEmailMatched) {// if a confirmed entry does not exist, then insert one but label it for delivery
+            if (!deliveredEmailMatched) {// if a confirmed entry does not exist, then insert one but label it for delivery too
                 console.log("delivery email here, but no confirmation entry....creating confirm row and marking delivered")
                 const moreRows = await sheet.addRows([
                     { 
@@ -47,6 +48,8 @@ const updateSheets = async (_fineParse) => {
                         "Total Payment": _fineParse.totalPayment, 
                         "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
                         "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+                        "Purchase Date": _fineParse.date,
+                        "Delivery Date": _fineParse.date
                     }])
                     
                     console.log("sheet updated")
@@ -58,6 +61,7 @@ const updateSheets = async (_fineParse) => {
             rows.forEach((row, index) => {
                 if (row['Order Number'] == _fineParse.orderNumber) {
                     rows[index]['hasConfirmedEmail'] = _fineParse.hasConfirmedEmail
+                    rows[index]['Purchase Date'] = _fineParse.date
                     rows[index].save()
                     console.log("sheet updated")
                     confirmedEmailMatched = true
@@ -78,7 +82,7 @@ const updateSheets = async (_fineParse) => {
                         "Shipping": _fineParse.shipping, 
                         "Total Payment": _fineParse.totalPayment, 
                         "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-                        // "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+                        "Purchase Date": _fineParse.date
                     }])
                     console.log("sheet updated")
             }
@@ -136,8 +140,17 @@ function largeScaleParse(_string){
         if (line.includes("Subject:")){
             rawDetails["subject"] = line
         }
+        if (line.includes("Date:")){
+            rawDetails["date"] = line
+        }
     })
     return rawDetails
+}
+
+function formatDate(fineParseString){
+  let edit1 = fineParseString.split(" at ")
+  console.log("🚀 ~ file: email.js ~ line 152 ~ formatDate ~ edit1", edit1)
+  return edit1[0]
 }
 
 function fineParse(rawDetails, subject) {
@@ -150,6 +163,7 @@ function fineParse(rawDetails, subject) {
     fineDetails["processingFee"] = rawDetails['processingFee'].substring(rawDetails.processingFee.indexOf(": ") + 2, rawDetails.processingFee.length)  
     fineDetails["shipping"] = rawDetails['shipping'].substring(rawDetails.shipping.indexOf(": ") + 2, rawDetails.shipping.length)  
     fineDetails["totalPayment"] = rawDetails['totalPayment'].substring(rawDetails.totalPayment.indexOf("$") + 0, rawDetails.totalPayment.length - 1)  
+    fineDetails["date"] = formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  )
 
     if (rawDetails.subject.includes("Confirmed")){
         fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Confirmed:") + 11, rawDetails.subject.length)  
@@ -191,9 +205,9 @@ const getEmails = () => {
                     let _fineParse = fineParse(_largeScaleParse)
                     console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
                     const _updateSheets = await updateSheets(_fineParse)
+
                     let sendDiscordMe = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
                     let sendDiscordHermes = await sendWebhook(_fineParse, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //hermes
-
                     console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscordMe", sendDiscordMe)
                     console.log("🚀 ~ file: email.js ~ line 196 ~ simpleParser ~ sendDiscordHermes", sendDiscordHermes)
 
