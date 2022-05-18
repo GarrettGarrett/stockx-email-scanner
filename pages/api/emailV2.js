@@ -140,7 +140,7 @@ async function updateSheets(_fineParseArray) {
 
   async function iterateAndAddSingles () { 
     for (const _fineParse of _fineParseArray) {
-      if (!justOrderNumbers.includes(_fineParse.orderNumber)){ //if does not require matching, add to bulk
+      if (!justOrderNumbers.includes(_fineParse?.orderNumber)){ //if does not require matching, add to bulk
         bulkArray.push(_fineParse)
       }
 
@@ -149,7 +149,7 @@ async function updateSheets(_fineParseArray) {
           let deliveredEmailMatched = false
           // check to see if a confirmed entry exists - fine if it doesnt.
           rows.forEach((row, index) => {
-              if (row['Order Number'] == _fineParse.orderNumber) {
+              if (row['Order Number'] == _fineParse?.orderNumber) {
                   rows[index]['hasDeliveredEmail'] = _fineParse.hasDeliveredEmail
                   rows[index]['Delivery Date'] = _fineParse.date
                   rows[index].save()
@@ -183,7 +183,7 @@ async function updateSheets(_fineParseArray) {
           let confirmedEmailMatched = false
           // check to see if a confirmed entry exists - fine if it doesnt.
           rows.forEach((row, index) => {
-              if (row['Order Number'] == _fineParse.orderNumber) {
+              if (row['Order Number'] == _fineParse?.orderNumber) {
                   rows[index]['hasConfirmedEmail'] = _fineParse.hasConfirmedEmail
                   rows[index]['Purchase Date'] = _fineParse.date
                   rows[index].save()
