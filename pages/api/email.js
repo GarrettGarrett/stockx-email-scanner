@@ -20,7 +20,7 @@ const updateSheets = async (_fineParse) => {
 
     
     
-        if (_fineParse.hasDeliveredEmail){ //dealing with delivered entry
+        if (_fineParse?.hasDeliveredEmail){ //dealing with delivered entry
             let deliveredEmailMatched = false
             // check to see if a confirmed entry exists - fine if it doesnt.
             rows.forEach((row, index) => {
@@ -35,27 +35,27 @@ const updateSheets = async (_fineParse) => {
 
             if (!deliveredEmailMatched) {// if a confirmed entry does not exist, then insert one but label it for delivery too
                 console.log("delivery email here, but no confirmation entry....creating confirm row and marking delivered")
-                const moreRows = await sheet.addRows([
-                    { 
-                        "Style ID": _fineParse.styleID, 
-                        "Size": _fineParse.size, 
-                        "Title": _fineParse.title, 
-                        "Condition": _fineParse.condition, 
-                        "Order Number": _fineParse.orderNumber, 
-                        "Purchase Price": _fineParse.purchasePrice, 
-                        "Processing Fee": _fineParse.processingFee, 
-                        "Shipping": _fineParse.shipping, 
-                        "Total Payment": _fineParse.totalPayment, 
-                        "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-                        "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
-                        "Purchase Date": _fineParse.date,
-                        "Delivery Date": _fineParse.date
-                    }])
+                // const moreRows = await sheet.addRows([
+                //     { 
+                //         "Style ID": _fineParse.styleID, 
+                //         "Size": _fineParse.size, 
+                //         "Title": _fineParse.title, 
+                //         "Condition": _fineParse.condition, 
+                //         "Order Number": _fineParse.orderNumber, 
+                //         "Purchase Price": _fineParse.purchasePrice, 
+                //         "Processing Fee": _fineParse.processingFee, 
+                //         "Shipping": _fineParse.shipping, 
+                //         "Total Payment": _fineParse.totalPayment, 
+                //         "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
+                //         "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+                //         "Purchase Date": _fineParse.date,
+                //         "Delivery Date": _fineParse.date
+                //     }])
                     
                     console.log("sheet updated")
             }
 
-        } else if (_fineParse.hasConfirmedEmail) { //dealing with confirmed entry
+        } else if (_fineParse?.hasConfirmedEmail) { //dealing with confirmed entry
             let confirmedEmailMatched = false
             // check to see if a confirmed entry exists - fine if it doesnt.
             rows.forEach((row, index) => {
@@ -70,20 +70,20 @@ const updateSheets = async (_fineParse) => {
 
             if (!confirmedEmailMatched) {
                 console.log("confirmed email here, but no delivery entry....creating confirm row and marking confirmed")
-                const moreRows = await sheet.addRows([
-                    { 
-                        "Style ID": _fineParse.styleID, 
-                        "Size": _fineParse.size, 
-                        "Title": _fineParse.title, 
-                        "Condition": _fineParse.condition, 
-                        "Order Number": _fineParse.orderNumber, 
-                        "Purchase Price": _fineParse.purchasePrice, 
-                        "Processing Fee": _fineParse.processingFee, 
-                        "Shipping": _fineParse.shipping, 
-                        "Total Payment": _fineParse.totalPayment, 
-                        "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-                        "Purchase Date": _fineParse.date
-                    }])
+                // const moreRows = await sheet.addRows([
+                //     { 
+                //         "Style ID": _fineParse.styleID, 
+                //         "Size": _fineParse.size, 
+                //         "Title": _fineParse.title, 
+                //         "Condition": _fineParse.condition, 
+                //         "Order Number": _fineParse.orderNumber, 
+                //         "Purchase Price": _fineParse.purchasePrice, 
+                //         "Processing Fee": _fineParse.processingFee, 
+                //         "Shipping": _fineParse.shipping, 
+                //         "Total Payment": _fineParse.totalPayment, 
+                //         "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
+                //         "Purchase Date": _fineParse.date
+                //     }])
                     console.log("sheet updated")
             }
             } else { //not a confirmed or delivery email
@@ -156,6 +156,8 @@ function formatDate(fineParseString){
 }
 
 function fineParse(rawDetails, subject) {
+  // only continue if confirmation or delivery email:
+  if (rawDetails?.subject?.includes("Confirmed") || rawDetails?.subject?.includes("Delivered")) {
     let fineDetails = {}
     fineDetails["styleID"] = rawDetails['styleID'].substring(rawDetails.styleID.indexOf(": ") + 2, rawDetails.styleID.length)  
     fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(": ") + 2, rawDetails.size.length)  
@@ -178,6 +180,9 @@ function fineParse(rawDetails, subject) {
     }
 
     return fineDetails
+  }
+
+  
 
 }//
 
@@ -208,11 +213,13 @@ const getEmails = () => {
                     console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
                     const _updateSheets = await updateSheets(_fineParse)
 
+                    // Notify:
                     if (_fineParse?.hasConfirmedEmail || _fineParse?.hasDeliveredEmail) {
                       let sendDiscordMe = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
-                      let sendDiscordHermes = await sendWebhook(_fineParse, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //hermes
                       console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscordMe", sendDiscordMe)
-                      console.log("🚀 ~ file: email.js ~ line 196 ~ simpleParser ~ sendDiscordHermes", sendDiscordHermes)
+
+                      // let sendDiscordHermes = await sendWebhook(_fineParse, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //hermes
+                      // console.log("🚀 ~ file: email.js ~ line 196 ~ simpleParser ~ sendDiscordHermes", sendDiscordHermes)
                     }
                    
 
