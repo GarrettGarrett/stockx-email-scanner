@@ -325,7 +325,8 @@ export default async (req, res) => {
             await new Promise(r => setTimeout(r, 1000));
           }
           if (connectionEnded) {
-            let sheetUpdate = updateSheets(_fineParseList)
+            let sheetUpdate = await updateSheets(_fineParseList)
+            console.log("🚀 ~ file: emailV2.js ~ line 329 ~ sheetUpdate", sheetUpdate)
             return res.status(200).json({ data: "ok" })
           }
          
