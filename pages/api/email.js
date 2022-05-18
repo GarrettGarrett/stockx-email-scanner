@@ -55,7 +55,7 @@ const updateSheets = async (_fineParse) => {
                     console.log("sheet updated")
             }
 
-        } else { //dealing with confirmed entry
+        } else if (_fineParse.hasConfirmedEmail) { //dealing with confirmed entry
             let confirmedEmailMatched = false
             // check to see if a confirmed entry exists - fine if it doesnt.
             rows.forEach((row, index) => {
@@ -86,6 +86,8 @@ const updateSheets = async (_fineParse) => {
                     }])
                     console.log("sheet updated")
             }
+            } else { //not a confirmed or delivery email
+                console.log("email received but not a confirmation or delivery")
             }
 
     rows.save
@@ -206,10 +208,13 @@ const getEmails = () => {
                     console.log("🚀 ~ file: email.js ~ line 68 ~ simpleParser ~ _finePArse", _fineParse)
                     const _updateSheets = await updateSheets(_fineParse)
 
-                    let sendDiscordMe = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
-                    let sendDiscordHermes = await sendWebhook(_fineParse, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //hermes
-                    console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscordMe", sendDiscordMe)
-                    console.log("🚀 ~ file: email.js ~ line 196 ~ simpleParser ~ sendDiscordHermes", sendDiscordHermes)
+                    if (_fineParse?.hasConfirmedEmail || _fineParse?.hasDeliveredEmail) {
+                      let sendDiscordMe = await sendWebhook(_fineParse, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
+                      let sendDiscordHermes = await sendWebhook(_fineParse, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //hermes
+                      console.log("🚀 ~ file: email.js ~ line 195 ~ simpleParser ~ sendDiscordMe", sendDiscordMe)
+                      console.log("🚀 ~ file: email.js ~ line 196 ~ simpleParser ~ sendDiscordHermes", sendDiscordHermes)
+                    }
+                   
 
                   } 
                   finalStatus = 1
