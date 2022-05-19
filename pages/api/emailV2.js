@@ -363,8 +363,8 @@ export default async (req, res) => {
               let sendDiscordMe = await sendWebhookArray(_fineParseList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
               console.log("🚀 ~ file: emailV2.js ~ line 364 ~ sendDiscordMe", sendDiscordMe)
               
-              // let sendDiscordHermes = await sendWebhookArray(_fineParseList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
-              // console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
+              let sendDiscordHermes = await sendWebhookArray(_fineParseList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+              console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
               
               
             }
