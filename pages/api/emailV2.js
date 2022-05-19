@@ -2,6 +2,9 @@ const Imap = require('imap');
 const {simpleParser} = require('mailparser');
 const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm package
 const fs = require('fs') // File handling package
+import { sendWebhookArray } from '../../utils/DiscordArray';
+import { sendWebhook } from '../../utils/Discord';
+
 
 const RESPONSES_SHEET_ID = '1gxQKq2KzFFirj-5aFaMLKBqgLA3d_8hhoEvAoKe8DCU'; // spreadsheet key is the long id in the sheets URL
 const doc = new GoogleSpreadsheet(RESPONSES_SHEET_ID); // const RESPONSES_SHEET_ID = '19lo-6eEXYmu_gw5FgyeVZJ9DoJblPQTVbVorSL1Ppus';
@@ -81,8 +84,6 @@ function largeScaleParse(_string, subject, date){
 
       }
      
-     
-      
   })
   return rawDetails
 }
@@ -217,19 +218,39 @@ async function updateSheets(_fineParseArray) {
   }
 
     function formatFineParseForSheetsAdd(_fineParse){
-      return { 
-        "Style ID": _fineParse.styleID, 
-        "Size": _fineParse.size, 
-        "Title": _fineParse.title, 
-        "Condition": _fineParse.condition, 
-        "Order Number": _fineParse.orderNumber, 
-        "Purchase Price": _fineParse.purchasePrice, 
-        "Processing Fee": _fineParse.processingFee, 
-        "Shipping": _fineParse.shipping, 
-        "Total Payment": _fineParse.totalPayment, 
-        "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-        "Purchase Date": _fineParse.date
-    }
+      if (_fineParse?.hasDeliveredEmail){
+        return { 
+          "Style ID": _fineParse.styleID, 
+          "Size": _fineParse.size, 
+          "Title": _fineParse.title, 
+          "Condition": _fineParse.condition, 
+          "Order Number": _fineParse.orderNumber, 
+          "Purchase Price": _fineParse.purchasePrice, 
+          "Processing Fee": _fineParse.processingFee, 
+          "Shipping": _fineParse.shipping, 
+          "Total Payment": _fineParse.totalPayment, 
+          "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
+          "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+          "Delivery Date": _fineParse.date
+        }
+      } else { //confirmation email...
+        return { 
+          "Style ID": _fineParse.styleID, 
+          "Size": _fineParse.size, 
+          "Title": _fineParse.title, 
+          "Condition": _fineParse.condition, 
+          "Order Number": _fineParse.orderNumber, 
+          "Purchase Price": _fineParse.purchasePrice, 
+          "Processing Fee": _fineParse.processingFee, 
+          "Shipping": _fineParse.shipping, 
+          "Total Payment": _fineParse.totalPayment, 
+          "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
+          "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+          "Purchase Date": _fineParse.date
+        }
+      }
+      
+
     }
 
 
@@ -239,7 +260,9 @@ async function updateSheets(_fineParseArray) {
 
     let formattedBulkArray = []
     bulkArray.forEach(_fineParse => {
-      formattedBulkArray.push(formatFineParseForSheetsAdd(_fineParse))
+      if (_fineParse?.styleID){
+        formattedBulkArray.push(formatFineParseForSheetsAdd(_fineParse))
+      }
     })
     const moreRows = await sheet.addRows(formattedBulkArray)
 
@@ -253,6 +276,8 @@ async function updateSheets(_fineParseArray) {
 export default async (req, res) => {
   
     if (req.method === 'GET') {
+      let count = 0
+      var startTime = performance.now()
         async function getEmails() {
 
             try {
@@ -272,8 +297,10 @@ export default async (req, res) => {
                               
                               
                               let _fineParse = fineParse(_largeScaleParse)
-                              
-                              _fineParseList.push(_fineParse)
+                              if (_fineParse.styleID){ //ignore 'unknowns'
+                                _fineParseList.push(_fineParse)
+                              }
+                             
                               console.log("🚀 ~ file: emailV2.js ~ line 196 ~ simpleParser ~ _fineParseList", _fineParseList)
                               // const _updateSheets = await updateSheets(_fineParse)
                           } 
@@ -288,6 +315,7 @@ export default async (req, res) => {
                         const {uid} = attrs;
                         imap.addFlags(uid, ['\\Seen'], () => {
                           // Mark the email as read after reading it
+                          count ++
                           console.log('Marked as read!');
                         });
                       });
@@ -318,7 +346,7 @@ export default async (req, res) => {
             }
           };
 
-          let _fineParseList = []
+          let _fineParseList = [] //all shoe objects that will need to be added to Sheets
           let connectionEnded = false
           const emails = await getEmails()
           while (!connectionEnded) {
@@ -326,13 +354,22 @@ export default async (req, res) => {
           }
           if (connectionEnded) {
             let sheetUpdate = await updateSheets(_fineParseList)
-            console.log("🚀 ~ file: emailV2.js ~ line 329 ~ sheetUpdate", sheetUpdate)
-            return res.status(200).json({ data: "ok" })
-          }
-         
-    }
-   
+            console.log("🚀 ~ file: emailV2.js ~ line 352 ~ _fineParseList", _fineParseList)
 
+            var endTime = performance.now()
+            console.log("🚀 ~ file: emailV2.js ~ line 329 ~ sheetUpdate", sheetUpdate)
+
+            if (_fineParseList.length > 1) {
+              let sendDiscordMe = await sendWebhookArray(_fineParseList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
+            }
+            if (_fineParseList.length == 1){
+              let sendDiscordMe = await sendWebhook(_fineParseList[0], "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
+            }
+
+            return res.status(200).json({ data: `\nSeconds: ${((endTime - startTime) / 1000).toFixed(2)} \nMarked Read: ${count}` })
+          }
+    }
   }
 
   
+ 

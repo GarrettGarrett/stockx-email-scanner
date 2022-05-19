@@ -1,8 +1,19 @@
-export async function sendWebhook(_fineParse, webhookUrl) {
+export async function sendWebhookArray(_fineParseArray, webhookUrl) {
 
     function hexToDecimal(hex) {
         return parseInt(hex.replace("#",""), 16)
     }
+
+    let description = ""
+    _fineParseArray.forEach(_fineParse => {
+      
+        let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}`
+        let descriptionEdited = description.concat(adding);
+        description = descriptionEdited
+    })
+
+    console.log("🚀 ~ file: DiscordArray.js ~ line 8 ~ sendWebhook ~ description", description)
+
 
     var myHeaders = new Headers();
     myHeaders.append("authority", "discord.com");
@@ -20,14 +31,14 @@ export async function sendWebhook(_fineParse, webhookUrl) {
 
     var myEmbed = {
         author: {
-          name: "New Google Sheets Entry",
+          name: "New Google Sheets Entries",
         },
         // image: {
         //     url: "https://image.goat.com/750/attachments/product_template_pictures/images/035/924/748/original/616017_00.png.png"
         // 
         
-        title: _fineParse.title,
-        description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}`,
+        title: `${_fineParseArray.length} New Entries`,
+        description: description,
         color: hexToDecimal("#5B9D66"),
         timestamp: new Date()
     }
