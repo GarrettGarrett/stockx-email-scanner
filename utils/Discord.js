@@ -20,7 +20,7 @@ export async function sendWebhook(_fineParse, webhookUrl) {
 
     var myEmbed = {
         author: {
-          name: "New Google Sheets Entry",
+          name: "New Email Detected",
         },
         // image: {
         //     url: "https://image.goat.com/750/attachments/product_template_pictures/images/035/924/748/original/616017_00.png.png"

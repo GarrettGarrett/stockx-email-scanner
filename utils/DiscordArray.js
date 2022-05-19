@@ -31,13 +31,13 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) {
 
     var myEmbed = {
         author: {
-          name: "New Google Sheets Entries",
+          name: "New Emails Detected",
         },
         // image: {
         //     url: "https://image.goat.com/750/attachments/product_template_pictures/images/035/924/748/original/616017_00.png.png"
         // 
         
-        title: `${_fineParseArray.length} New Entries`,
+        title: `${_fineParseArray.length} New Emails`,
         description: description,
         color: hexToDecimal("#5B9D66"),
         timestamp: new Date()
