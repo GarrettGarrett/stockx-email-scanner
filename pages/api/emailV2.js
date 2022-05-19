@@ -361,9 +361,19 @@ export default async (req, res) => {
 
             if (_fineParseList.length > 1) {
               let sendDiscordMe = await sendWebhookArray(_fineParseList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
+              console.log("🚀 ~ file: emailV2.js ~ line 364 ~ sendDiscordMe", sendDiscordMe)
+              
+              let sendDiscordHermes = await sendWebhookArray(_fineParseList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+              console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
+              
+              
             }
             if (_fineParseList.length == 1){
               let sendDiscordMe = await sendWebhook(_fineParseList[0], "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
+              console.log("🚀 ~ file: emailV2.js ~ line 373 ~ sendDiscordMe", sendDiscordMe)
+              
+              let sendDiscordHermes = await sendWebhook(_fineParseList[0], "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //my own
+              console.log("🚀 ~ file: emailV2.js ~ line 376 ~ sendDiscordHermes", sendDiscordHermes)
             }
 
             return res.status(200).json({ data: `\nSeconds: ${((endTime - startTime) / 1000).toFixed(2)} \nMarked Read: ${count}` })
