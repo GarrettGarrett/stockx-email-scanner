@@ -297,7 +297,7 @@ export default async (req, res) => {
                               
                               
                               let _fineParse = fineParse(_largeScaleParse)
-                              if (_fineParse.styleID){ //ignore 'unknowns'
+                              if (_fineParse?.styleID){ //ignore 'unknowns'
                                 _fineParseList.push(_fineParse)
                               }
                              
