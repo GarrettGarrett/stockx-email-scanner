@@ -35,7 +35,7 @@ export async function sendWebhook(_fineParse, webhookUrl) {
         // 
         
         title: _fineParse.title,
-        description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nType: ${isDeliveredEmail(_fineParse) ? "Delivered" : "Confirmed"}`,
+        description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${isDeliveredEmail(_fineParse) ? "🎉 Delivered" : "👍 Confirmed"}`,
         color: hexToDecimal("#5B9D66"),
         timestamp: new Date()
     }
