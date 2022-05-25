@@ -4,10 +4,17 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) {
         return parseInt(hex.replace("#",""), 16)
     }
 
+    function isDeliveredEmail(_fineParse){
+        if (_fineParse?.hasDeliveredEmail) {
+            return true
+        }
+        return false
+    }
+
     let description = ""
     _fineParseArray.forEach(_fineParse => {
       
-        let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}`
+        let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nType: ${isDeliveredEmail(_fineParse) ? "Delivered" : "Confirmed"}`
         let descriptionEdited = description.concat(adding);
         description = descriptionEdited
     })
