@@ -1,7 +1,6 @@
 export async function sendWebhookArray(_fineParseArray, webhookUrl) {
 
     function returnEmailType(_fineParse){
-        console.log("🚀 ~ file: DiscordArray.js ~ line 4 ~ returnEmailType ~ _fineParse", _fineParse)
         let result = ''
         if (_fineParse?.hasDeliveredEmail) {
             result = "🎉 Delivered"

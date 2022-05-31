@@ -6,7 +6,7 @@ import { sendWebhookArray } from '../../utils/DiscordArray';
 import { sendWebhook } from '../../utils/Discord';
 
 // #######################################################
-let testmode = false
+let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
 // #######################################################
 
 
@@ -102,7 +102,8 @@ function fineParse(rawDetails, subject) { // only continue if confirmation or de
     || rawDetails?.subject?.includes("Refund")
   ) {
     let fineDetails = {}
-    fineDetails["styleID"] = rawDetails['styleID'].substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
+    fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
+    fineDetails["styleID"] = rawDetails['styleID']?.substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
     fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(":") + 2, rawDetails.size.length)  
     fineDetails["condition"] = rawDetails['condition'].substring(rawDetails.condition.indexOf(":") + 2, rawDetails.condition.length)  
     fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf(":") + 2, rawDetails.orderNumber.length)  
@@ -276,7 +277,7 @@ async function updateSheets(_fineParseArray) {
           "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
           "Delivery Date": _fineParse.date
         }
-      } else { //confirmation email...
+      } else if (_fineParse?.hasConfirmedEmail) { //confirmation email...
         return { 
           "Style ID": _fineParse.styleID, 
           "Size": _fineParse.size, 
@@ -291,6 +292,21 @@ async function updateSheets(_fineParseArray) {
           "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
           "Purchase Date": _fineParse.date
         }
+      } else { //refund email
+        return { 
+          "Style ID": _fineParse.styleID, 
+          "Size": _fineParse.size, 
+          "Title": _fineParse.title, 
+          "Condition": _fineParse.condition, 
+          "Order Number": _fineParse.orderNumber, 
+          "Purchase Price": _fineParse.purchasePrice, 
+          "Processing Fee": _fineParse.processingFee, 
+          "Shipping": _fineParse.shipping, 
+          "Total Payment": _fineParse.totalPayment, 
+          "Is Cancelled": _fineParse.isRefund, 
+          "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+          "Purchase Date": _fineParse.date
+        }
       }
     }
 
@@ -299,7 +315,7 @@ async function updateSheets(_fineParseArray) {
 
     let formattedBulkArray = []
     bulkArray.forEach(_fineParse => {
-      if (_fineParse?.styleID){
+      if (_fineParse?.orderNumber){ //ignore unkowns
         formattedBulkArray.push(formatFineParseForSheetsAdd(_fineParse))
       }
     })
@@ -335,7 +351,7 @@ export default async (req, res) => {
                               let _largeScaleParse = largeScaleParse(parsed.text, parsed.subject, subtractHours(4, parsed.date))
                               
                               let _fineParse = fineParse(_largeScaleParse)
-                              if (_fineParse?.styleID){ //ignore 'unknowns'
+                              if (_fineParse?.orderNumber){ //ignore 'unknowns'
                                 _fineParseList.push(_fineParse)
                               }
                              
