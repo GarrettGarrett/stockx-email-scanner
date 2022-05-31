@@ -1,5 +1,18 @@
 export async function sendWebhookArray(_fineParseArray, webhookUrl) {
 
+    function returnEmailType(_fineParse){
+        console.log("🚀 ~ file: DiscordArray.js ~ line 4 ~ returnEmailType ~ _fineParse", _fineParse)
+        let result = ''
+        if (_fineParse?.hasDeliveredEmail) {
+            result = "🎉 Delivered"
+        } else if  (_fineParse?.isRefund ){
+            result = "Refund Issued"
+        } else if (_fineParse?.hasConfirmedEmail ) {
+            result = "👍 Confirmed"
+        }
+        return result
+    }
+
     function hexToDecimal(hex) {
         return parseInt(hex.replace("#",""), 16)
     }
@@ -14,7 +27,7 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) {
     let description = ""
     _fineParseArray.forEach(_fineParse => {
       
-        let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${isDeliveredEmail(_fineParse) ? "🎉 Delivered" : "👍 Confirmed"}`
+        let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`
         let descriptionEdited = description.concat(adding);
         description = descriptionEdited
     })

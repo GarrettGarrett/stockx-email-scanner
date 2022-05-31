@@ -1,5 +1,18 @@
 export async function sendWebhook(_fineParse, webhookUrl) {
 
+    function returnEmailType(_fineParse){
+        console.log("🚀 ~ file: DiscordArray.js ~ line 4 ~ returnEmailType ~ _fineParse", _fineParse)
+        let result = ''
+        if (_fineParse?.hasDeliveredEmail) {
+            result = "🎉 Delivered"
+        } else if  (_fineParse?.isRefund ){
+            result = "Refund Issued"
+        } else if (_fineParse?.hasConfirmedEmail ) {
+            result = "👍 Confirmed"
+        }
+        return result
+    }
+
 
     function isDeliveredEmail(_fineParse){
         if (_fineParse?.hasDeliveredEmail) {
@@ -35,7 +48,7 @@ export async function sendWebhook(_fineParse, webhookUrl) {
         // 
         
         title: _fineParse.title,
-        description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${isDeliveredEmail(_fineParse) ? "🎉 Delivered" : "👍 Confirmed"}`,
+        description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`,
         color: hexToDecimal("#5B9D66"),
         timestamp: new Date()
     }

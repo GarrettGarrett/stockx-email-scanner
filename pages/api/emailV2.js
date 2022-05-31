@@ -5,6 +5,10 @@ const fs = require('fs') // File handling package
 import { sendWebhookArray } from '../../utils/DiscordArray';
 import { sendWebhook } from '../../utils/Discord';
 
+// #######################################################
+let testmode = false
+// #######################################################
+
 
 const RESPONSES_SHEET_ID = '1gxQKq2KzFFirj-5aFaMLKBqgLA3d_8hhoEvAoKe8DCU'; // spreadsheet key is the long id in the sheets URL
 const doc = new GoogleSpreadsheet(RESPONSES_SHEET_ID); // const RESPONSES_SHEET_ID = '19lo-6eEXYmu_gw5FgyeVZJ9DoJblPQTVbVorSL1Ppus';
@@ -93,7 +97,10 @@ function largeScaleParse(_string, subject, date){
 }
 
 function fineParse(rawDetails, subject) { // only continue if confirmation or delivery email:
-  if (rawDetails?.subject?.includes("Confirmed") || rawDetails?.subject?.includes("Delivered")) {
+  if (rawDetails?.subject?.includes("Confirmed") 
+    || rawDetails?.subject?.includes("Delivered")
+    || rawDetails?.subject?.includes("Refund")
+  ) {
     let fineDetails = {}
     fineDetails["styleID"] = rawDetails['styleID'].substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
     fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(":") + 2, rawDetails.size.length)  
@@ -119,6 +126,10 @@ function fineParse(rawDetails, subject) { // only continue if confirmation or de
         fineDetails['hasDeliveredEmail'] = true
         fineDetails['hasConfirmedEmail'] = true
     }
+    if (rawDetails.subject.includes("Refund")){
+      fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Refund Issued:") + 15, rawDetails.subject.length)  
+      fineDetails['isRefund'] = true
+  }
     return fineDetails
   }
 }
@@ -209,6 +220,40 @@ async function updateSheets(_fineParseArray) {
                   }])
                   console.log("sheet updated")
           }
+
+         } else if (_fineParse?.isRefund) {
+            console.log("found refund email")
+            let refundEmailMatched = false
+            rows.forEach((row, index) => {  // check to see if a refund entry exists - fine if it doesn't.
+              if (row['Order Number'] == _fineParse?.orderNumber) {
+                  rows[index]['Is Cancelled'] = _fineParse.isRefund
+                  rows[index]['Purchase Date'] = _fineParse.date
+                  rows[index].save()
+                  console.log("sheet updated")
+                  refundEmailMatched = true
+              }
+            })
+            if (!refundEmailMatched) {
+              console.log("refund email here, but no delivery/confirmation entry....creating refund row and marking confirmed")
+              const moreRows = await sheet.addRows([
+                  { 
+                      "Style ID": _fineParse.styleID, 
+                      "Size": _fineParse.size, 
+                      "Title": _fineParse.title, 
+                      "Condition": _fineParse.condition, 
+                      "Order Number": _fineParse.orderNumber, 
+                      "Purchase Price": _fineParse.purchasePrice, 
+                      "Processing Fee": _fineParse.processingFee, 
+                      "Shipping": _fineParse.shipping, 
+                      "Total Payment": _fineParse.totalPayment, 
+                      "Is Cancelled": _fineParse.isRefund, 
+                      "Purchase Date": _fineParse.date
+                  }])
+                  console.log("sheet updated")
+          }
+            
+          
+
           } else { //not a confirmed or delivery email
               console.log("email received but not a confirmation or delivery")
           }}
@@ -354,17 +399,21 @@ export default async (req, res) => {
               let sendDiscordMe = await sendWebhookArray(_fineParseList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
               console.log("🚀 ~ file: emailV2.js ~ line 364 ~ sendDiscordMe", sendDiscordMe)
               
-              let sendDiscordHermes = await sendWebhookArray(_fineParseList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
-              console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
-              
-              
+              if (!testmode){
+                let sendDiscordHermes = await sendWebhookArray(_fineParseList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+                console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
+              }
+
             }
             if (_fineParseList.length == 1){
               let sendDiscordMe = await sendWebhook(_fineParseList[0], "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
               console.log("🚀 ~ file: emailV2.js ~ line 373 ~ sendDiscordMe", sendDiscordMe)
               
-              let sendDiscordHermes = await sendWebhook(_fineParseList[0], "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //my own
-              console.log("🚀 ~ file: emailV2.js ~ line 376 ~ sendDiscordHermes", sendDiscordHermes)
+              if (!testmode) {
+                let sendDiscordHermes = await sendWebhook(_fineParseList[0], "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //my own
+                console.log("🚀 ~ file: emailV2.js ~ line 376 ~ sendDiscordHermes", sendDiscordHermes)
+              }
+             
             }
 
             return res.status(200).json({ data: `\nSeconds: ${((endTime - startTime) / 1000).toFixed(2)} \nMarked Read: ${count}` })
