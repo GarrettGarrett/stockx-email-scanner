@@ -33,6 +33,12 @@ const imapConfig = {
   }
 }
 
+function subtractHours(numOfHours, date) {
+  date.setHours(date.getHours() - numOfHours);
+
+  return date;
+}
+
 
 function formatDate(fineParseString){
   let edit1 = fineParseString.split(" at ")
@@ -81,15 +87,12 @@ function largeScaleParse(_string, subject, date){
       } else { //cannot parse date, meaning it was an auto forward, and date is from parsed.date
         rawDetails["date"] = date.toString()
         rawDetails["dateRetrievedFromStamp"] = true
-
       }
-     
   })
   return rawDetails
 }
 
-function fineParse(rawDetails, subject) {
-  // only continue if confirmation or delivery email:
+function fineParse(rawDetails, subject) { // only continue if confirmation or delivery email:
   if (rawDetails?.subject?.includes("Confirmed") || rawDetails?.subject?.includes("Delivered")) {
     let fineDetails = {}
     fineDetails["styleID"] = rawDetails['styleID'].substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
@@ -107,7 +110,6 @@ function fineParse(rawDetails, subject) {
       fineDetails["date"] = formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  )
     }
     
-
     if (rawDetails.subject.includes("Confirmed")){
         fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Confirmed:") + 11, rawDetails.subject.length)  
         fineDetails['hasConfirmedEmail'] = true
@@ -117,7 +119,6 @@ function fineParse(rawDetails, subject) {
         fineDetails['hasDeliveredEmail'] = true
         fineDetails['hasConfirmedEmail'] = true
     }
-
     return fineDetails
   }
 }
@@ -138,7 +139,6 @@ async function updateSheets(_fineParseArray) {
 
   console.log("🚀 ~ file: emailV2.js ~ line 134 ~ updateSheets ~ justOrderNumbers", justOrderNumbers)
 
-
   async function iterateAndAddSingles () { 
     for (const _fineParse of _fineParseArray) {
       if (!justOrderNumbers.includes(_fineParse?.orderNumber)){ //if does not require matching, add to bulk
@@ -147,8 +147,7 @@ async function updateSheets(_fineParseArray) {
 
       else { //matching to do...
         if (_fineParse?.hasDeliveredEmail){ //dealing with delivered entry
-          let deliveredEmailMatched = false
-          // check to see if a confirmed entry exists - fine if it doesnt.
+          let deliveredEmailMatched = false // check to see if a confirmed entry exists - fine if it doesn't.
           rows.forEach((row, index) => {
               if (row['Order Number'] == _fineParse?.orderNumber) {
                   rows[index]['hasDeliveredEmail'] = _fineParse.hasDeliveredEmail
@@ -182,8 +181,7 @@ async function updateSheets(_fineParseArray) {
   
       } else if (_fineParse?.hasConfirmedEmail) { //dealing with confirmed entry
           let confirmedEmailMatched = false
-          // check to see if a confirmed entry exists - fine if it doesnt.
-          rows.forEach((row, index) => {
+          rows.forEach((row, index) => {  // check to see if a confirmed entry exists - fine if it doesnt.
               if (row['Order Number'] == _fineParse?.orderNumber) {
                   rows[index]['hasConfirmedEmail'] = _fineParse.hasConfirmedEmail
                   rows[index]['Purchase Date'] = _fineParse.date
@@ -219,7 +217,7 @@ async function updateSheets(_fineParseArray) {
 
     function formatFineParseForSheetsAdd(_fineParse){
       if (_fineParse?.hasDeliveredEmail){
-        return { 
+        return { // delivery email...
           "Style ID": _fineParse.styleID, 
           "Size": _fineParse.size, 
           "Title": _fineParse.title, 
@@ -249,11 +247,7 @@ async function updateSheets(_fineParseArray) {
           "Purchase Date": _fineParse.date
         }
       }
-      
-
     }
-
-
 
     iterateAndAddSingles()
     console.log("Bulk: ", bulkArray)
@@ -289,12 +283,11 @@ export default async (req, res) => {
                     f.on('message', msg => {
                       msg.on('body', stream => {
                         simpleParser(stream, async (err, parsed) => {
-                          // const {from, subject, textAsHtml, text} = parsed;
+                          // const {from, subject, textAsHtml, text, date} = parsed;
                           if (parsed?.text?.includes("StockX")) {
 
-                              console.log("found a stockX email...", parsed.subject, parsed.date)
-                              let _largeScaleParse = largeScaleParse(parsed.text, parsed.subject, parsed.date)
-                              
+                              console.log("found a stockX email...", parsed.subject, subtractHours(4, parsed.date)) //4 hours because udt time.  he wants est time.
+                              let _largeScaleParse = largeScaleParse(parsed.text, parsed.subject, subtractHours(4, parsed.date))
                               
                               let _fineParse = fineParse(_largeScaleParse)
                               if (_fineParse?.styleID){ //ignore 'unknowns'
@@ -302,7 +295,6 @@ export default async (req, res) => {
                               }
                              
                               console.log("🚀 ~ file: emailV2.js ~ line 196 ~ simpleParser ~ _fineParseList", _fineParseList)
-                              // const _updateSheets = await updateSheets(_fineParse)
                           } 
 
                           /* Make API call to save the data
@@ -313,8 +305,7 @@ export default async (req, res) => {
                       });
                       msg.once('attributes', attrs => {
                         const {uid} = attrs;
-                        imap.addFlags(uid, ['\\Seen'], () => {
-                          // Mark the email as read after reading it
+                        imap.addFlags(uid, ['\\Seen'], () => {// Mark the email as read after reading it
                           count ++
                           console.log('Marked as read!');
                         });
@@ -346,7 +337,7 @@ export default async (req, res) => {
             }
           };
 
-          let _fineParseList = [] //all shoe objects that will need to be added to Sheets
+          let _fineParseList = [] // all shoe objects that will need to be added to Sheets
           let connectionEnded = false
           const emails = await getEmails()
           while (!connectionEnded) {
