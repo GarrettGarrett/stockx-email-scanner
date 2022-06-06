@@ -256,7 +256,7 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
 
 async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray or _fineParseGoatArray
   await doc.loadInfo();
-  let importerStockX = doc.sheetsByIndex[0]; //stockx importer tab
+  let importerStockX = doc.sheetsByTitle["Importer - SX"]; //stockx importer tab
   let importerGoat = doc.sheetsByTitle["Importer - GOAT"] //goat importer tab
   let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
   
