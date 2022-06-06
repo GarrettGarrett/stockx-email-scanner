@@ -281,6 +281,32 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
 
   console.log("🚀 ~ file: emailV2.js ~ line 134 ~  ~ justOrderNumbers", justOrderNumbers)
 
+  async function updateUnsoldGoatRow(entireRow, _unsoldGoat, index){
+    let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+
+    const moreRows = await unsoldGoat.addRows([
+      { 
+          "Style ID": entireRow["Style ID"], 
+          "Size": entireRow["Size"], 
+          "Title": entireRow["Title"], 
+          "Condition": entireRow["Condition"], 
+          "Order Number": entireRow["Order Number"], 
+          "Sub Total": entireRow["Sub Total"], 
+          "Goat Credit": entireRow["Goat Credit"], 
+          "Shipping": entireRow["Shipping"], 
+          "Total Paid": entireRow["Total Paid"], 
+          "hasConfirmedEmail": entireRow["hasConfirmedEmail"], 
+          "hasStorageEmail": entireRow["hasStorageEmail"], 
+          "Is Cancelled": entireRow["Is Cancelled"], 
+          "Purchase Date": entireRow["Purchase Date"], 
+          "Delivery Date": entireRow["Delivery Date"], 
+          "Delivery Confirmed": entireRow["Delivery Confirmed"],    
+          
+      },
+  
+  ])  
+  }
+
 
   async function iterateAndAddSinglesGoat() {
     for (const _fineParseGoat of _fineParseArray) {
@@ -295,16 +321,16 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
               if (row['Order Number'] == _fineParseGoat?.orderNumber) {
                   rows[index]['hasStorageEmail'] = _fineParseGoat.hasStorageEmail
                   rows[index]['Delivery Date'] = _fineParseGoat.date
-                  // rows[index]['Delivery Confirmed'] = _fineParseGoat.hasStorageEmail
+                  rows[index]['Delivery Confirmed'] = _fineParseGoat.hasStorageEmail
                   let entireRow = rows[index]//._rawData fpr just values
                   rows[index].save()
                   console.log("Goat Sheet Updated")
                   deliveredEmailMatched = true
 
                   // Because it's a storage email, and this order exists in importer sheet, it needs to be added to unsold Goat tab.
-                  // updateUnsoldGoatRow(entireRow, unsoldGoat, index)
+                  updateUnsoldGoatRow(entireRow, unsoldGoat, index)
                   // testUpdateSheet()
-                  // console.log("Goat Unsold Sheet Updated")
+                  console.log("Goat Unsold Sheet Updated")
               }
           })
   

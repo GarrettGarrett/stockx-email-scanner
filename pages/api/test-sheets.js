@@ -18,6 +18,7 @@ export default async (req, res) => {
         
         await doc.loadInfo();
         let sheet = doc.sheetsByTitle["Unsold GOAT"]
+        console.log("🚀 ~ file: test-sheets.js ~ line 21 ~ sheet", sheet)
         const rows = await sheet.getRows()
         // let justOrderNumbers = []
         // rows.forEach(row => {
