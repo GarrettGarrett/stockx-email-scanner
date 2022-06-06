@@ -6,10 +6,11 @@ import { sendWebhookArray } from '../../utils/DiscordArray';
 import { sendWebhook } from '../../utils/Discord';
 import {sendWebhookArrayGoat} from '../../utils/DiscordArrayGoat'
 import { sendWebhookGoat} from '../../utils/DiscordGoat'
+import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
 let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
-let maxEmailsAtOnce = 5 //set the max number of emails to read on each api request. Helpful when limited timeout.
+let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
 
@@ -753,11 +754,11 @@ export default async (req, res) => {
 
             // SEND DISCORD NOTIFICATIONS START------------------------------------------------------
             if (_fineParseStockXList.length > 1) { //handle many StockX
-              let sendDiscordMe = await sendWebhookArray(_fineParseStockXList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
+              let sendDiscordMe = await sendWebhookManyStockX(_fineParseStockXList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
               console.log("🚀 ~ file: emailV2.js ~ line 364 ~ sendDiscordMe", sendDiscordMe)
               
               if (!testmode){
-                let sendDiscordHermes = await sendWebhookArray(_fineParseStockXList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+                let sendDiscordHermes = await sendWebhookManyStockX(_fineParseStockXList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
                 console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
               }
 

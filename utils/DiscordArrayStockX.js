@@ -1,4 +1,4 @@
-export async function sendWebhook(_fineParse, webhookUrl) {
+export async function sendWebhookManyStockX(_fineParseArray, webhookUrl) {
 
     function returnEmailType(_fineParse){
         let result = ''
@@ -48,27 +48,36 @@ export async function sendWebhook(_fineParse, webhookUrl) {
         let combined = startString + endString
         return combined
     }
-    let imageUrlWithProduct = `https://images.stockx.com/images/${removeSizeFromTitle(_fineParse.title.replaceAll(" ", "-").replaceAll(".", ""))}-Product.jpg`
-    let imageUrlNoProduct = `https://images.stockx.com/images/${removeSizeFromTitle(_fineParse.title.replaceAll(" ", "-").replaceAll(".", ""))}.jpg`
-    console.log("🚀 ~ file: Discord.js ~ line 53 ~ sendWebhook ~ imageUrlNoProduct", imageUrlNoProduct)
-    console.log("🚀 ~ file: Discord.js ~ line 52 ~ sendWebhook ~ imageUrlWithProduct", imageUrlWithProduct)
 
 
-    var myEmbed = {
-        author: {
-          name: "New StockX Email Detected",
-        },
-        thumbnail: { url:  imageUrlWithProduct},
-        thumbnail: { url:  imageUrlNoProduct},
-        title: _fineParse.title,
-        description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`,
-        color: hexToDecimal("#5B9D66"),
-        timestamp: new Date()
-    }
+    let allEmbeds = []
+    _fineParseArray.forEach(_fineParse => {
+
+        let imageUrlWithProduct = `https://images.stockx.com/images/${removeSizeFromTitle(_fineParse.title.replaceAll(" ", "-").replaceAll(".", ""))}-Product.jpg`
+        let imageUrlNoProduct = `https://images.stockx.com/images/${removeSizeFromTitle(_fineParse.title.replaceAll(" ", "-").replaceAll(".", ""))}.jpg`
+        console.log("🚀 ~ file: Discord.js ~ line 53 ~ sendWebhook ~ imageUrlNoProduct", imageUrlNoProduct)
+        console.log("🚀 ~ file: Discord.js ~ line 52 ~ sendWebhook ~ imageUrlWithProduct", imageUrlWithProduct)
+
+        var myEmbed = {
+            author: {
+              name: "New StockX Email Detected",
+            },
+            thumbnail: { url:  imageUrlWithProduct},
+            thumbnail: { url:  imageUrlNoProduct},
+            title: _fineParse.title,
+            description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`,
+            color: hexToDecimal("#5B9D66"),
+            timestamp: new Date()
+        }
+
+        allEmbeds.push(myEmbed)
+    })
+
+    
 
       var raw = JSON.stringify({
         username: "StockX Importer",
-        embeds: [ myEmbed ],
+        embeds: allEmbeds,
         avatar_url: "https://i.imgur.com/fYrDHMk.png",
     })
     

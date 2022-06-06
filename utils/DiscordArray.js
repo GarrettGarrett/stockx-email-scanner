@@ -2,6 +2,16 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) { //handles 
     // stockx = title, style id, order number, total, email type
     // GOAT = title, style id, order number, total, email type
 
+    function removeSizeFromTitle(longUrl){
+        let start = longUrl.indexOf("(") - 1
+        let end = longUrl.indexOf(")") - 1
+        let startString = longUrl.slice(0, start)
+        let endString = longUrl.slice(end + 2, longUrl.length)
+        let combined = startString + endString
+        return combined
+    }
+   
+
     function returnEmailType(_fineParse){
         let result = ''
         if (_fineParse?.hasDeliveredEmail) {
