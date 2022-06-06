@@ -9,6 +9,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 
 // #######################################################
 let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
+let maxEmailsAtOnce = 5 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
 
@@ -646,6 +647,7 @@ export default async (req, res) => {
   
     if (req.method === 'GET') {
       let count = 0
+      let readCount = 0
       var startTime = performance.now()
         async function getEmails() {
 
@@ -654,7 +656,12 @@ export default async (req, res) => {
               imap.once('ready', () => {
                 imap.openBox('INBOX', false, () => {
                   imap.search(['UNSEEN', ['SINCE', oneMonthsAgo()]], (err, results) => {
-                    const f = imap.fetch(results, {bodies: ''});
+                    console.log("🚀 ~ file: emailV2.js ~ line 658 ~ imap.search ~ results", results)
+                    const limitedResults = results.slice(0, maxEmailsAtOnce)
+                    console.log("🚀 ~ file: emailV2.js ~ line 660 ~ imap.search ~ limitedResults", limitedResults)
+
+                    // const f = imap.fetch(results, {bodies: ''});
+                    const f = imap.fetch(limitedResults, {bodies: ''});
                     f.on('message', msg => {
                       msg.on('body', stream => {
                         // MAIN
@@ -688,10 +695,13 @@ export default async (req, res) => {
                       });
                       msg.once('attributes', attrs => {
                         const {uid} = attrs;
-                        imap.addFlags(uid, ['\\Seen'], () => {// Mark the email as read after reading it
-                          count ++
-                          console.log('Marked as read!');
-                        });
+                        readCount ++
+                        if (readCount <= maxEmailsAtOnce) { //limit the emails scanned at once
+                          imap.addFlags(uid, ['\\Seen'], () => {// Mark the email as read after reading it
+                            count ++
+                            console.log('Marked as read!');
+                          });
+                        }
                       });
                     });
                     f.once('error', ex => {
