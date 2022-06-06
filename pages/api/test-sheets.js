@@ -17,13 +17,13 @@ export default async (req, res) => {
         });
         
         await doc.loadInfo();
-        let sheet = doc.sheetsByIndex[0];
+        let sheet = doc.sheetsByTitle["Unsold GOAT"]
         const rows = await sheet.getRows()
-        let justOrderNumbers = []
-        rows.forEach(row => {
-            justOrderNumbers.push(row['Order Number'])
-        })
-        console.log("🚀 ~ file: test-sheets.js ~ line 22 ~ rows", justOrderNumbers)
+        // let justOrderNumbers = []
+        // rows.forEach(row => {
+        //     justOrderNumbers.push(row['Order Number'])
+        // })
+        // console.log("🚀 ~ file: test-sheets.js ~ line 22 ~ rows", justOrderNumbers)
         const moreRows = await sheet.addRows([
             { 
                 "Style ID": "test", 
@@ -35,7 +35,10 @@ export default async (req, res) => {
             },
         
         ])       
-          
+        console.log("🚀 ~ file: test-sheets.js ~ line 38 ~ moreRows", moreRows)
+        // let save = await sheet.saveCells();
             }
             console.log("sheet updated") 
+            return res.status(200).json({ data: "ok" })
+
     }

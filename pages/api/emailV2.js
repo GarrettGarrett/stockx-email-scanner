@@ -4,6 +4,8 @@ const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm 
 const fs = require('fs') // File handling package
 import { sendWebhookArray } from '../../utils/DiscordArray';
 import { sendWebhook } from '../../utils/Discord';
+import {sendWebhookArrayGoat} from '../../utils/DiscordArrayGoat'
+import { sendWebhookGoat} from '../../utils/DiscordGoat'
 
 // #######################################################
 let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
@@ -39,13 +41,12 @@ const imapConfig = {
 
 function subtractHours(numOfHours, date) {
   date.setHours(date.getHours() - numOfHours);
-
   return date;
 }
 
 
-function formatDate(fineParseString){
-  let edit1 = fineParseString.split(" at ")
+function formatDate(fineParseStockXString){
+  let edit1 = fineParseStockXString.split(" at ")
   return edit1[0]
 }
 
@@ -55,7 +56,58 @@ function oneMonthsAgo(){
     return d
 }
 
-function largeScaleParse(_string, subject, date){
+function largeScaleParseGoat(_string, subject, date){
+  let rawDetails = {}
+  
+  const splitByLine = _string.split(/\r?\n/)
+
+  if (splitByLine.includes("Thank you for your order")) {
+    rawDetails.type = "Confirmed"
+  } if (splitByLine.includes("Your sneakers are being stored")) {
+    rawDetails.type = "Storage"
+  }
+  rawDetails["date"] = date.toString()
+  rawDetails["dateRetrievedFromStamp"] = true
+
+  if (rawDetails.type == "Confirmed") {
+    let indexOfItemSummary = splitByLine.indexOf("item summary")
+    rawDetails.styleID = splitByLine[indexOfItemSummary - 2] //this could change
+    rawDetails.title = splitByLine[indexOfItemSummary - 1] //this could change
+    rawDetails.brand = splitByLine[indexOfItemSummary + 1] 
+    rawDetails.size = splitByLine[indexOfItemSummary + 3] 
+    rawDetails.condition = splitByLine[indexOfItemSummary + 6] 
+  
+    splitByLine.forEach(line => {
+      if (line.includes("Order #")){
+          rawDetails["orderNumber"] = line
+      }
+    })
+  
+    let indexOfOrderSummary = splitByLine.indexOf("order summary")
+    rawDetails.subTotal = splitByLine[indexOfOrderSummary + 1]
+    rawDetails.shipping = splitByLine[indexOfOrderSummary + 2]
+    rawDetails.goatCredit = splitByLine[indexOfOrderSummary + 4]
+    rawDetails.totalPaid = splitByLine[indexOfOrderSummary + 5]
+  
+    return rawDetails
+  }
+
+  if (rawDetails.type == "Storage") { //in the stored email, some details are not mentioned such as brand, shipping, etc
+    let anchorText = splitByLine.indexOf("what are my options?") //will probably change
+    rawDetails.styleID = splitByLine[anchorText - 2] 
+    rawDetails.title = splitByLine[anchorText - 1] 
+    splitByLine.forEach(line => {
+      if (line.includes("Order #")){
+          rawDetails["orderNumber"] = line
+      }
+    })
+    return rawDetails
+  }
+
+  
+}
+
+function largeScaleParseStockX(_string, subject, date){
   const splitByLine = _string.split(/\r?\n/)
   let rawDetails = {}
   splitByLine.forEach(line => {
@@ -96,14 +148,76 @@ function largeScaleParse(_string, subject, date){
   return rawDetails
 }
 
-function fineParse(rawDetails, subject) { // only continue if confirmation or delivery email:
-  if (rawDetails?.subject?.includes("Confirmed") 
+function fineParseGoat(rawDetails, subject) { //only continue if confirmation or storage email
+  console.log("🚀 ~ file: emailV2.js ~ line 151 ~ fineParseGoat ~ rawDetails", rawDetails)
+  if (
+      rawDetails?.type?.includes("Confirmed") //this info is set during largescaleparseGoat
+  ) {
+    let fineDetails = {}
+    fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
+    fineDetails["styleID"] = rawDetails?.styleID 
+    fineDetails.website = "Goat"
+    fineDetails["title"] = rawDetails['title']
+    fineDetails["size"] = rawDetails?.size 
+    fineDetails["condition"] = rawDetails?.condition 
+    fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf("#") + 1, rawDetails.orderNumber.length)  //Order #476756560 == 476756560
+    fineDetails["subTotal"] = rawDetails['subTotal'].substring(rawDetails.subTotal.indexOf("$") + 1, rawDetails.subTotal.length)  
+    fineDetails["shipping"] = rawDetails['shipping'].substring(rawDetails.shipping.indexOf("$") + 1, rawDetails.shipping.length)  
+    fineDetails["goatCredit"] = rawDetails['goatCredit'].substring(rawDetails.goatCredit.indexOf("goat credit") + 11, rawDetails.goatCredit.length)  
+    fineDetails["totalPaid"] = rawDetails['totalPaid'].substring(rawDetails.totalPaid.indexOf("$") + 1, rawDetails.totalPaid.length)  
+    
+    if (rawDetails.dateRetrievedFromStamp){
+      fineDetails["date"] = rawDetails.date.substring(0,10)
+    } else { //retrieved date from body 
+      fineDetails["date"] = formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  )
+    }
+
+    if (rawDetails.type.includes("Confirmed")){
+      fineDetails['hasConfirmedEmail'] = true
+    }
+    if (rawDetails.type.includes("Storage")){
+      fineDetails['hasStorageEmail'] = true
+      fineDetails['hasConfirmedEmail'] = true
+    }
+
+    console.log("fineDetails", fineDetails)
+    return fineDetails
+  } if (rawDetails?.type?.includes("Storage")) {
+    let fineDetails = {}
+    fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
+    fineDetails["styleID"] = rawDetails?.styleID 
+    fineDetails.website = "Goat"
+    fineDetails["title"] = rawDetails['title']
+    fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf("#") + 1, rawDetails.orderNumber.length)  //Order #476756560 == 476756560
+    
+    if (rawDetails.dateRetrievedFromStamp){
+      fineDetails["date"] = rawDetails.date.substring(0,10)
+    }
+
+    if (rawDetails.type.includes("Confirmed")){
+      fineDetails['hasConfirmedEmail'] = true
+    }
+    if (rawDetails.type.includes("Storage")){
+      fineDetails['hasStorageEmail'] = true
+      fineDetails['hasConfirmedEmail'] = true
+    }
+
+    console.log("GOAT fineDetails", fineDetails)
+    return fineDetails
+  }
+  
+}
+
+function fineParseStockX(rawDetails, subject) { // only continue if confirmation or delivery or refund email:
+  if (
+      rawDetails?.subject?.includes("Confirmed") 
     || rawDetails?.subject?.includes("Delivered")
     || rawDetails?.subject?.includes("Refund")
   ) {
     let fineDetails = {}
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails['styleID']?.substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
+    fineDetails.website = "StockX"
     fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(":") + 2, rawDetails.size.length)  
     fineDetails["condition"] = rawDetails['condition'].substring(rawDetails.condition.indexOf(":") + 2, rawDetails.condition.length)  
     fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf(":") + 2, rawDetails.orderNumber.length)  
@@ -136,9 +250,23 @@ function fineParse(rawDetails, subject) { // only continue if confirmation or de
 }
 
 
-async function updateSheets(_fineParseArray) {
+
+
+
+
+async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray or _fineParseGoatArray
   await doc.loadInfo();
-  let sheet = doc.sheetsByIndex[0];
+  let importerStockX = doc.sheetsByIndex[0]; //stockx importer tab
+  let importerGoat = doc.sheetsByTitle["Importer - GOAT"] //goat importer tab
+  let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+  
+  let sheet
+  if (website == "StockX") {
+    sheet = importerStockX
+  }
+  if (website == "Goat") {
+    sheet = importerGoat
+  }
   const rows = await sheet.getRows()
 
   let bulkArray = []
@@ -149,21 +277,143 @@ async function updateSheets(_fineParseArray) {
             justOrderNumbers.push(row['Order Number'])
   })
 
-  console.log("🚀 ~ file: emailV2.js ~ line 134 ~ updateSheets ~ justOrderNumbers", justOrderNumbers)
+  console.log("🚀 ~ file: emailV2.js ~ line 134 ~  ~ justOrderNumbers", justOrderNumbers)
 
-  async function iterateAndAddSingles () { 
-    for (const _fineParse of _fineParseArray) {
-      if (!justOrderNumbers.includes(_fineParse?.orderNumber)){ //if does not require matching, add to bulk
-        bulkArray.push(_fineParse)
+
+  async function iterateAndAddSinglesGoat() {
+    for (const _fineParseGoat of _fineParseArray) {
+      if (!justOrderNumbers.includes(_fineParseGoat?.orderNumber)){ //if does not require matching, add to bulk.  (Because order # does not yet exist in sheet.)
+        bulkArray.push(_fineParseGoat)
       }
 
-      else { //matching to do...
-        if (_fineParse?.hasDeliveredEmail){ //dealing with delivered entry
+      else { //Order # exists in sheet, matching to do...
+        if (_fineParseGoat?.hasStorageEmail){ //dealing with hasStorageEmail entry.  
           let deliveredEmailMatched = false // check to see if a confirmed entry exists - fine if it doesn't.
           rows.forEach((row, index) => {
-              if (row['Order Number'] == _fineParse?.orderNumber) {
-                  rows[index]['hasDeliveredEmail'] = _fineParse.hasDeliveredEmail
-                  rows[index]['Delivery Date'] = _fineParse.date
+              if (row['Order Number'] == _fineParseGoat?.orderNumber) {
+                  rows[index]['hasStorageEmail'] = _fineParseGoat.hasStorageEmail
+                  rows[index]['Delivery Date'] = _fineParseGoat.date
+                  // rows[index]['Delivery Confirmed'] = _fineParseGoat.hasStorageEmail
+                  let entireRow = rows[index]//._rawData fpr just values
+                  rows[index].save()
+                  console.log("Goat Sheet Updated")
+                  deliveredEmailMatched = true
+
+                  // Because it's a storage email, and this order exists in importer sheet, it needs to be added to unsold Goat tab.
+                  // updateUnsoldGoatRow(entireRow, unsoldGoat, index)
+                  // testUpdateSheet()
+                  // console.log("Goat Unsold Sheet Updated")
+              }
+          })
+  
+          if (!deliveredEmailMatched) {//  if a confirmed entry does not exist, then insert one but label it for delivery too
+              console.log("Goat storage email here, but no confirmation entry....creating confirm row and marking delivered")
+              const moreRows = await sheet.addRows([
+                  { 
+                      "Style ID": _fineParseGoat.styleID, 
+                      "Size": _fineParseGoat.size, 
+                      "Title": _fineParseGoat.title, 
+                      "Condition": _fineParseGoat.condition, 
+                      "Order Number": _fineParseGoat.orderNumber, 
+                      "Sub Total": _fineParseGoat.subTotal, 
+                      "Shipping": _fineParseGoat.shipping, 
+                      "Goat Credit": _fineParseGoat.goatCredit, 
+                      "Total Paid": _fineParseGoat.totalPaid, 
+                      "hasConfirmedEmail": _fineParseGoat.hasConfirmedEmail, 
+                      "hasStorageEmail": _fineParseGoat.hasStorageEmail, 
+                      "Purchase Date": _fineParseGoat.date,
+                      "Delivery Date": _fineParseGoat.date
+                  }])
+                  console.log("Goat Sheet Updated")
+          }
+  
+      } else if (_fineParseGoat?.hasConfirmedEmail) { //dealing with confirmed entry
+          let confirmedEmailMatched = false
+          rows.forEach((row, index) => {  // check to see if a confirmed entry exists - fine if it doesnt.
+              if (row['Order Number'] == _fineParseGoat?.orderNumber) {
+                  rows[index]['hasConfirmedEmail'] = _fineParseGoat.hasConfirmedEmail
+                  rows[index]['Purchase Date'] = _fineParseGoat.date
+                  rows[index].save()
+                  console.log("Goat Sheet Updated")
+                  confirmedEmailMatched = true
+              }
+          })
+  
+          if (!confirmedEmailMatched) {
+              console.log("Goat confirmed email here, but no storage entry....creating confirm row and marking confirmed")
+              const moreRows = await sheet.addRows([
+                  { 
+                      "Style ID": _fineParseGoat.styleID, 
+                      "Size": _fineParseGoat.size, 
+                      "Title": _fineParseGoat.title, 
+                      "Condition": _fineParseGoat.condition, 
+                      "Order Number": _fineParseGoat.orderNumber, 
+                      "Sub Total": _fineParseGoat.subTotal, 
+                      "Shipping": _fineParseGoat.shipping, 
+                      "Goat Credit": _fineParseGoat.goatCredit, 
+                      "Total Paid": _fineParseGoat.totalPaid, 
+                      "hasConfirmedEmail": _fineParseGoat.hasConfirmedEmail, 
+                      "Purchase Date": _fineParseGoat.date
+                  }])
+                  console.log("Goat Sheet Updated")
+          }
+
+          // Un comment this section to deal with GOAT refunds.  needs to be adjusted.
+        //  } else if (_fineParseGoat?.isRefund) {
+        //     console.log("found refund email")
+        //     let refundEmailMatched = false
+        //     rows.forEach((row, index) => {  // check to see if a refund entry exists - fine if it doesn't.
+        //       if (row['Order Number'] == _fineParseGoat?.orderNumber) {
+        //           rows[index]['Is Cancelled'] = _fineParseGoat.isRefund
+        //           rows[index]['Purchase Date'] = _fineParseGoat.date
+        //           rows[index].save()
+        //           console.log("sheet updated")
+        //           refundEmailMatched = true
+        //       }
+        //     })
+        //     if (!refundEmailMatched) {
+        //       console.log("refund email here, but no delivery/confirmation entry....creating refund row and marking confirmed")
+        //       const moreRows = await importerStockX.addRows([
+        //           { 
+        //               "Style ID": _fineParseGoat.styleID, 
+        //               "Size": _fineParseGoat.size, 
+        //               "Title": _fineParseGoat.title, 
+        //               "Condition": _fineParseGoat.condition, 
+        //               "Order Number": _fineParseGoat.orderNumber, 
+        //               "Purchase Price": _fineParseGoat.purchasePrice, 
+        //               "Processing Fee": _fineParseGoat.processingFee, 
+        //               "Shipping": _fineParseGoat.shipping, 
+        //               "Total Payment": _fineParseGoat.totalPayment, 
+        //               "Is Cancelled": _fineParseGoat.isRefund, 
+        //               "Purchase Date": _fineParseGoat.date
+        //           }])
+        //           console.log("sheet updated")
+        //   }
+            
+          
+
+          } else { //not a confirmed or delivery email
+              console.log("Goat email received but not a confirmation or storage")
+          }}
+    }
+  }
+// ---------------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------------
+  async function iterateAndAddSinglesStockX () { 
+    for (const _fineParseStockX of _fineParseArray) {
+      if (!justOrderNumbers.includes(_fineParseStockX?.orderNumber)){ //if does not require matching, add to bulk.  (Because order # does not yet exist in sheet.)
+        bulkArray.push(_fineParseStockX)
+      }
+
+      else { //Order # exists in sheet, matching to do...
+        if (_fineParseStockX?.hasDeliveredEmail){ //dealing with delivered entry
+          let deliveredEmailMatched = false // check to see if a confirmed entry exists - fine if it doesn't.
+          rows.forEach((row, index) => {
+              if (row['Order Number'] == _fineParseStockX?.orderNumber) {
+                  rows[index]['hasDeliveredEmail'] = _fineParseStockX.hasDeliveredEmail
+                  rows[index]['Delivery Date'] = _fineParseStockX.date
                   rows[index].save()
                   console.log("sheet updated")
                   deliveredEmailMatched = true
@@ -174,29 +424,29 @@ async function updateSheets(_fineParseArray) {
               console.log("delivery email here, but no confirmation entry....creating confirm row and marking delivered")
               const moreRows = await sheet.addRows([
                   { 
-                      "Style ID": _fineParse.styleID, 
-                      "Size": _fineParse.size, 
-                      "Title": _fineParse.title, 
-                      "Condition": _fineParse.condition, 
-                      "Order Number": _fineParse.orderNumber, 
-                      "Purchase Price": _fineParse.purchasePrice, 
-                      "Processing Fee": _fineParse.processingFee, 
-                      "Shipping": _fineParse.shipping, 
-                      "Total Payment": _fineParse.totalPayment, 
-                      "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-                      "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
-                      "Purchase Date": _fineParse.date,
-                      "Delivery Date": _fineParse.date
+                      "Style ID": _fineParseStockX.styleID, 
+                      "Size": _fineParseStockX.size, 
+                      "Title": _fineParseStockX.title, 
+                      "Condition": _fineParseStockX.condition, 
+                      "Order Number": _fineParseStockX.orderNumber, 
+                      "Purchase Price": _fineParseStockX.purchasePrice, 
+                      "Processing Fee": _fineParseStockX.processingFee, 
+                      "Shipping": _fineParseStockX.shipping, 
+                      "Total Payment": _fineParseStockX.totalPayment, 
+                      "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
+                      "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
+                      "Purchase Date": _fineParseStockX.date,
+                      "Delivery Date": _fineParseStockX.date
                   }])
                   console.log("sheet updated")
           }
   
-      } else if (_fineParse?.hasConfirmedEmail) { //dealing with confirmed entry
+      } else if (_fineParseStockX?.hasConfirmedEmail) { //dealing with confirmed entry
           let confirmedEmailMatched = false
           rows.forEach((row, index) => {  // check to see if a confirmed entry exists - fine if it doesnt.
-              if (row['Order Number'] == _fineParse?.orderNumber) {
-                  rows[index]['hasConfirmedEmail'] = _fineParse.hasConfirmedEmail
-                  rows[index]['Purchase Date'] = _fineParse.date
+              if (row['Order Number'] == _fineParseStockX?.orderNumber) {
+                  rows[index]['hasConfirmedEmail'] = _fineParseStockX.hasConfirmedEmail
+                  rows[index]['Purchase Date'] = _fineParseStockX.date
                   rows[index].save()
                   console.log("sheet updated")
                   confirmedEmailMatched = true
@@ -207,28 +457,28 @@ async function updateSheets(_fineParseArray) {
               console.log("confirmed email here, but no delivery entry....creating confirm row and marking confirmed")
               const moreRows = await sheet.addRows([
                   { 
-                      "Style ID": _fineParse.styleID, 
-                      "Size": _fineParse.size, 
-                      "Title": _fineParse.title, 
-                      "Condition": _fineParse.condition, 
-                      "Order Number": _fineParse.orderNumber, 
-                      "Purchase Price": _fineParse.purchasePrice, 
-                      "Processing Fee": _fineParse.processingFee, 
-                      "Shipping": _fineParse.shipping, 
-                      "Total Payment": _fineParse.totalPayment, 
-                      "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-                      "Purchase Date": _fineParse.date
+                      "Style ID": _fineParseStockX.styleID, 
+                      "Size": _fineParseStockX.size, 
+                      "Title": _fineParseStockX.title, 
+                      "Condition": _fineParseStockX.condition, 
+                      "Order Number": _fineParseStockX.orderNumber, 
+                      "Purchase Price": _fineParseStockX.purchasePrice, 
+                      "Processing Fee": _fineParseStockX.processingFee, 
+                      "Shipping": _fineParseStockX.shipping, 
+                      "Total Payment": _fineParseStockX.totalPayment, 
+                      "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
+                      "Purchase Date": _fineParseStockX.date
                   }])
                   console.log("sheet updated")
           }
 
-         } else if (_fineParse?.isRefund) {
+         } else if (_fineParseStockX?.isRefund) {
             console.log("found refund email")
             let refundEmailMatched = false
             rows.forEach((row, index) => {  // check to see if a refund entry exists - fine if it doesn't.
-              if (row['Order Number'] == _fineParse?.orderNumber) {
-                  rows[index]['Is Cancelled'] = _fineParse.isRefund
-                  rows[index]['Purchase Date'] = _fineParse.date
+              if (row['Order Number'] == _fineParseStockX?.orderNumber) {
+                  rows[index]['Is Cancelled'] = _fineParseStockX.isRefund
+                  rows[index]['Purchase Date'] = _fineParseStockX.date
                   rows[index].save()
                   console.log("sheet updated")
                   refundEmailMatched = true
@@ -238,17 +488,17 @@ async function updateSheets(_fineParseArray) {
               console.log("refund email here, but no delivery/confirmation entry....creating refund row and marking confirmed")
               const moreRows = await sheet.addRows([
                   { 
-                      "Style ID": _fineParse.styleID, 
-                      "Size": _fineParse.size, 
-                      "Title": _fineParse.title, 
-                      "Condition": _fineParse.condition, 
-                      "Order Number": _fineParse.orderNumber, 
-                      "Purchase Price": _fineParse.purchasePrice, 
-                      "Processing Fee": _fineParse.processingFee, 
-                      "Shipping": _fineParse.shipping, 
-                      "Total Payment": _fineParse.totalPayment, 
-                      "Is Cancelled": _fineParse.isRefund, 
-                      "Purchase Date": _fineParse.date
+                      "Style ID": _fineParseStockX.styleID, 
+                      "Size": _fineParseStockX.size, 
+                      "Title": _fineParseStockX.title, 
+                      "Condition": _fineParseStockX.condition, 
+                      "Order Number": _fineParseStockX.orderNumber, 
+                      "Purchase Price": _fineParseStockX.purchasePrice, 
+                      "Processing Fee": _fineParseStockX.processingFee, 
+                      "Shipping": _fineParseStockX.shipping, 
+                      "Total Payment": _fineParseStockX.totalPayment, 
+                      "Is Cancelled": _fineParseStockX.isRefund, 
+                      "Purchase Date": _fineParseStockX.date
                   }])
                   console.log("sheet updated")
           }
@@ -261,21 +511,22 @@ async function updateSheets(_fineParseArray) {
     }
   }
 
-    function formatFineParseForSheetsAdd(_fineParse){
-      if (_fineParse?.hasDeliveredEmail){
+    function formatfineParseGoatForSheetsAdd(_fineParse) {
+      if (_fineParse?.hasStorageEmail){
         return { // delivery email...
           "Style ID": _fineParse.styleID, 
           "Size": _fineParse.size, 
           "Title": _fineParse.title, 
           "Condition": _fineParse.condition, 
           "Order Number": _fineParse.orderNumber, 
-          "Purchase Price": _fineParse.purchasePrice, 
-          "Processing Fee": _fineParse.processingFee, 
+          "Sub Total": _fineParse.subTotal, 
           "Shipping": _fineParse.shipping, 
-          "Total Payment": _fineParse.totalPayment, 
+          "Goat Credit": _fineParse.goatCredit, 
+          "Total Paid": _fineParse.totalPaid, 
           "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-          "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
-          "Delivery Date": _fineParse.date
+          "hasStorageEmail": _fineParse.hasStorageEmail, 
+          "Delivery Date": _fineParse.date,
+          "Delivery Confirmed": _fineParse.hasStorageEmail
         }
       } else if (_fineParse?.hasConfirmedEmail) { //confirmation email...
         return { 
@@ -284,39 +535,102 @@ async function updateSheets(_fineParseArray) {
           "Title": _fineParse.title, 
           "Condition": _fineParse.condition, 
           "Order Number": _fineParse.orderNumber, 
-          "Purchase Price": _fineParse.purchasePrice, 
-          "Processing Fee": _fineParse.processingFee, 
+          "Sub Total": _fineParse.subTotal, 
           "Shipping": _fineParse.shipping, 
-          "Total Payment": _fineParse.totalPayment, 
+          "Goat Credit": _fineParse.goatCredit, 
+          "Total Paid": _fineParse.totalPaid, 
           "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
-          "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
+          "hasStorageEmail": _fineParse.hasStorageEmail, 
+          // "Delivery Date": _fineParse.date,
           "Purchase Date": _fineParse.date
+        }
+      } 
+      // Uncomment this and adjust when making Goat Refund reader 
+      // else { //refund email
+      //   return { 
+      //     "Style ID": _fineParseStockX.styleID, 
+      //     "Size": _fineParseStockX.size, 
+      //     "Title": _fineParseStockX.title, 
+      //     "Condition": _fineParseStockX.condition, 
+      //     "Order Number": _fineParseStockX.orderNumber, 
+      //     "Purchase Price": _fineParseStockX.purchasePrice, 
+      //     "Processing Fee": _fineParseStockX.processingFee, 
+      //     "Shipping": _fineParseStockX.shipping, 
+      //     "Total Payment": _fineParseStockX.totalPayment, 
+      //     "Is Cancelled": _fineParseStockX.isRefund, 
+      //     "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
+      //     "Purchase Date": _fineParseStockX.date
+      //   }
+      // }
+    }
+
+    function formatfineParseStockXForSheetsAdd(_fineParseStockX){ //for aligning properties with column titles
+      if (_fineParseStockX?.hasDeliveredEmail){
+        return { // delivery email...
+          "Style ID": _fineParseStockX.styleID, 
+          "Size": _fineParseStockX.size, 
+          "Title": _fineParseStockX.title, 
+          "Condition": _fineParseStockX.condition, 
+          "Order Number": _fineParseStockX.orderNumber, 
+          "Purchase Price": _fineParseStockX.purchasePrice, 
+          "Processing Fee": _fineParseStockX.processingFee, 
+          "Shipping": _fineParseStockX.shipping, 
+          "Total Payment": _fineParseStockX.totalPayment, 
+          "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
+          "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
+          "Delivery Date": _fineParseStockX.date
+        }
+      } else if (_fineParseStockX?.hasConfirmedEmail) { //confirmation email...
+        return { 
+          "Style ID": _fineParseStockX.styleID, 
+          "Size": _fineParseStockX.size, 
+          "Title": _fineParseStockX.title, 
+          "Condition": _fineParseStockX.condition, 
+          "Order Number": _fineParseStockX.orderNumber, 
+          "Purchase Price": _fineParseStockX.purchasePrice, 
+          "Processing Fee": _fineParseStockX.processingFee, 
+          "Shipping": _fineParseStockX.shipping, 
+          "Total Payment": _fineParseStockX.totalPayment, 
+          "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
+          "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
+          "Purchase Date": _fineParseStockX.date
         }
       } else { //refund email
         return { 
-          "Style ID": _fineParse.styleID, 
-          "Size": _fineParse.size, 
-          "Title": _fineParse.title, 
-          "Condition": _fineParse.condition, 
-          "Order Number": _fineParse.orderNumber, 
-          "Purchase Price": _fineParse.purchasePrice, 
-          "Processing Fee": _fineParse.processingFee, 
-          "Shipping": _fineParse.shipping, 
-          "Total Payment": _fineParse.totalPayment, 
-          "Is Cancelled": _fineParse.isRefund, 
-          "hasDeliveredEmail": _fineParse.hasDeliveredEmail, 
-          "Purchase Date": _fineParse.date
+          "Style ID": _fineParseStockX.styleID, 
+          "Size": _fineParseStockX.size, 
+          "Title": _fineParseStockX.title, 
+          "Condition": _fineParseStockX.condition, 
+          "Order Number": _fineParseStockX.orderNumber, 
+          "Purchase Price": _fineParseStockX.purchasePrice, 
+          "Processing Fee": _fineParseStockX.processingFee, 
+          "Shipping": _fineParseStockX.shipping, 
+          "Total Payment": _fineParseStockX.totalPayment, 
+          "Is Cancelled": _fineParseStockX.isRefund, 
+          "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
+          "Purchase Date": _fineParseStockX.date
         }
       }
     }
 
-    iterateAndAddSingles()
+    if (website == "StockX") {
+      iterateAndAddSinglesStockX()
+    }
+    if (website == "Goat") {
+      iterateAndAddSinglesGoat()
+    }
+    
     console.log("Bulk: ", bulkArray)
 
     let formattedBulkArray = []
     bulkArray.forEach(_fineParse => {
       if (_fineParse?.orderNumber){ //ignore unkowns
-        formattedBulkArray.push(formatFineParseForSheetsAdd(_fineParse))
+        if (website == "StockX") {
+          formattedBulkArray.push(formatfineParseStockXForSheetsAdd(_fineParse))
+        }
+        if (website == "Goat") {
+          formattedBulkArray.push(formatfineParseGoatForSheetsAdd(_fineParse))
+        }
       }
     })
     const moreRows = await sheet.addRows(formattedBulkArray)
@@ -343,19 +657,27 @@ export default async (req, res) => {
                     const f = imap.fetch(results, {bodies: ''});
                     f.on('message', msg => {
                       msg.on('body', stream => {
+                        // MAIN
                         simpleParser(stream, async (err, parsed) => {
                           // const {from, subject, textAsHtml, text, date} = parsed;
-                          if (parsed?.text?.includes("StockX")) {
 
-                              console.log("found a stockX email...", parsed.subject, subtractHours(4, parsed.date)) //4 hours because udt time.  he wants est time.
-                              let _largeScaleParse = largeScaleParse(parsed.text, parsed.subject, subtractHours(4, parsed.date))
-                              
-                              let _fineParse = fineParse(_largeScaleParse)
-                              if (_fineParse?.orderNumber){ //ignore 'unknowns'
-                                _fineParseList.push(_fineParse)
+                          if (parsed?.text?.includes("GOAT")) { //handle GOAT emails here
+                            let _largeScaleParseGoat = largeScaleParseGoat(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                            let _fineParseGoat = fineParseGoat(_largeScaleParseGoat, parsed.subject)
+                            console.log("🚀 ~ file: emailV2.js ~ line 632 ~ simpleParser ~ _fineParseGoat", _fineParseGoat)
+                            if (_fineParseGoat?.orderNumber){ //ignore 'unknowns'
+                              _fineParseGoatList.push(_fineParseGoat)
+                            }
+                          }
+
+                          if (parsed?.text?.includes("StockX")) { //handle StockX emails here
+                              console.log("found a stockX email...", parsed.subject, subtractHours(4, parsed.date)) //4 hours because udt time.  client wants est time.
+                              let _largeScaleParseStockX = largeScaleParseStockX(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                              let _fineParseStockX = fineParseStockX(_largeScaleParseStockX)
+                              if (_fineParseStockX?.orderNumber){ //ignore 'unknowns'
+                                _fineParseStockXList.push(_fineParseStockX)
                               }
-                             
-                              console.log("🚀 ~ file: emailV2.js ~ line 196 ~ simpleParser ~ _fineParseList", _fineParseList)
+                              console.log("🚀 ~ file: emailV2.js ~ line 196 ~ simpleParser ~ _fineParseStockXList", _fineParseStockXList)
                           } 
 
                           /* Make API call to save the data
@@ -398,39 +720,68 @@ export default async (req, res) => {
             }
           };
 
-          let _fineParseList = [] // all shoe objects that will need to be added to Sheets
+          let _fineParseStockXList = [] // all StockX objects that will need to be added to Sheets
+          let _fineParseGoatList = [] // all GOAT objects that will need to be added to Sheets
           let connectionEnded = false
           const emails = await getEmails()
           while (!connectionEnded) {
             await new Promise(r => setTimeout(r, 1000));
           }
           if (connectionEnded) {
-            let sheetUpdate = await updateSheets(_fineParseList)
-            console.log("🚀 ~ file: emailV2.js ~ line 352 ~ _fineParseList", _fineParseList)
-
+            // UPDATE SHEET
+            if (_fineParseStockXList?.length > 0) {
+              let sheetUpdateStockX = await updateSheets(_fineParseStockXList, "StockX")
+              console.log("🚀 ~ file: emailV2.js ~ line 352 ~ _fineParseStockXList", _fineParseStockXList)
+            }
+            
+            if (_fineParseGoatList?.length > 0) {
+              let sheetUpdateGoat = await updateSheets(_fineParseGoatList, "Goat")
+              console.log("🚀 ~ file: emailV2.js ~ line 500 ~ sheetUpdateGoat", sheetUpdateGoat)
+            }
+            
             var endTime = performance.now()
-            console.log("🚀 ~ file: emailV2.js ~ line 329 ~ sheetUpdate", sheetUpdate)
 
-            if (_fineParseList.length > 1) {
-              let sendDiscordMe = await sendWebhookArray(_fineParseList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
+            // SEND DISCORD NOTIFICATIONS START------------------------------------------------------
+            if (_fineParseStockXList.length > 1) { //handle many StockX
+              let sendDiscordMe = await sendWebhookArray(_fineParseStockXList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
               console.log("🚀 ~ file: emailV2.js ~ line 364 ~ sendDiscordMe", sendDiscordMe)
               
               if (!testmode){
-                let sendDiscordHermes = await sendWebhookArray(_fineParseList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+                let sendDiscordHermes = await sendWebhookArray(_fineParseStockXList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
                 console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
               }
 
             }
-            if (_fineParseList.length == 1){
-              let sendDiscordMe = await sendWebhook(_fineParseList[0], "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
+            if (_fineParseStockXList.length == 1){ //handle 1 StockX
+              let sendDiscordMe = await sendWebhook(_fineParseStockXList[0], "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
               console.log("🚀 ~ file: emailV2.js ~ line 373 ~ sendDiscordMe", sendDiscordMe)
               
               if (!testmode) {
-                let sendDiscordHermes = await sendWebhook(_fineParseList[0], "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //my own
+                let sendDiscordHermes = await sendWebhook(_fineParseStockXList[0], "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //my own
                 console.log("🚀 ~ file: emailV2.js ~ line 376 ~ sendDiscordHermes", sendDiscordHermes)
               }
-             
             }
+
+            if (_fineParseGoatList.length > 1) { //handle many GOAT
+              let sendDiscordMe = await sendWebhookArrayGoat(_fineParseGoatList, "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C")
+              console.log("🚀 ~ file: emailV2.js ~ line 364 ~ sendDiscordMe", sendDiscordMe)
+              
+              if (!testmode){
+                let sendDiscordHermes = await sendWebhookArrayGoat(_fineParseGoatList, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+                console.log("🚀 ~ file: emailV2.js ~ line 366 ~ sendDiscordHermes", sendDiscordHermes)
+              }
+            }
+            if (_fineParseGoatList.length == 1){ //handle 1 GOAT
+              let sendDiscordMe = await sendWebhookGoat(_fineParseGoatList[0], "975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C") //my own
+              console.log("🚀 ~ file: emailV2.js ~ line 373 ~ sendDiscordMe", sendDiscordMe)
+              
+              if (!testmode) {
+                let sendDiscordHermes = await sendWebhookGoat(_fineParseGoatList[0], "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2") //my own
+                console.log("🚀 ~ file: emailV2.js ~ line 376 ~ sendDiscordHermes", sendDiscordHermes)
+              }
+            }
+
+              // SEND DISCORD NOTIFICATIONS END ------------------------------------------------------
 
             return res.status(200).json({ data: `\nSeconds: ${((endTime - startTime) / 1000).toFixed(2)} \nMarked Read: ${count}` })
           }

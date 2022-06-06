@@ -1,15 +1,15 @@
-export async function sendWebhookArray(_fineParseArray, webhookUrl) { //handles stockX and Goat
+export async function sendWebhookArrayGoat(_fineParseArray, webhookUrl) { //handles stockX and Goat
     // stockx = title, style id, order number, total, email type
     // GOAT = title, style id, order number, total, email type
 
     function returnEmailType(_fineParse){
         let result = ''
-        if (_fineParse?.hasDeliveredEmail) {
-            result = "🎉 Delivered"
-        } else if  (_fineParse?.isRefund ){
-            result = "Refund Issued"
-        } else if (_fineParse?.hasConfirmedEmail ) {
-            result = "👍 Confirmed"
+        if (_fineParse?.hasStorageEmail) {
+            result = "Your sneakers are being stored"
+        } else if  (_fineParse?.hasConfirmedEmail ){
+            result = "Confirmed"
+        // } else if (_fineParse?.hasConfirmedEmail ) {
+        //     result = "👍 Confirmed"
         }
         return result
     }
@@ -26,11 +26,22 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) { //handles 
     }
 
     let description = ""
+
+    // storage emails only contain 
+
     _fineParseArray.forEach(_fineParse => {
-        let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`
-        let descriptionEdited = description.concat(adding);
-        description = descriptionEdited
-    })
+        if (!_fineParse?.subTotal) {
+            let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: #####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 4)}\nEmail Type: ${returnEmailType(_fineParse)}`
+            let descriptionEdited = description.concat(adding);
+            description = descriptionEdited
+        }
+        else {
+            let adding = `\n\n\nTitle: ${_fineParse.title}\nStyle ID: ${_fineParse.styleID}\nOrder: #####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 4)}\nSub Total: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`
+            let descriptionEdited = description.concat(adding);
+            description = descriptionEdited
+        }
+      
+    })   
 
     console.log("🚀 ~ file: DiscordArray.js ~ line 8 ~ sendWebhook ~ description", description)
 
@@ -51,7 +62,7 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) { //handles 
 
     var myEmbed = {
         author: {
-          name: "New StockX Emails Detected",
+          name: "New GOAT Emails Detected",
         },
         // image: {
         //     url: "https://image.goat.com/750/attachments/product_template_pictures/images/035/924/748/original/616017_00.png.png"
@@ -59,14 +70,14 @@ export async function sendWebhookArray(_fineParseArray, webhookUrl) { //handles 
         
         title: `${_fineParseArray.length} New Emails`,
         description: description,
-        color: hexToDecimal("#5B9D66"),
+        color: hexToDecimal("#5C65ED"),
         timestamp: new Date()
     }
 
       var raw = JSON.stringify({
-        username: "StockX Importer",
+        username: "GOAT Importer",
         embeds: [ myEmbed ],
-        avatar_url: "https://i.imgur.com/fYrDHMk.png",
+        avatar_url: "https://i.imgur.com/TsctGbC.jpg",
     })
     
 
