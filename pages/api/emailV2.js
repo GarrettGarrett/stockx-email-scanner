@@ -155,7 +155,6 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
       rawDetails?.type?.includes("Confirmed") //this info is set during largescaleparseGoat
   ) {
     let fineDetails = {}
-    fineDetails["Platform"] = "GOAT"
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails?.styleID 
     fineDetails.website = "Goat"
@@ -186,7 +185,6 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
     return fineDetails
   } if (rawDetails?.type?.includes("Storage")) {
     let fineDetails = {}
-    fineDetails["Platform"] = "GOAT"
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails?.styleID 
     fineDetails.website = "Goat"
@@ -218,7 +216,6 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
     || rawDetails?.subject?.includes("Refund")
   ) {
     let fineDetails = {}
-    fineDetails["Platform"] = "GOAT"
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails['styleID']?.substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
     fineDetails.website = "StockX"
@@ -303,8 +300,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "Purchase Date": entireRow["Purchase Date"], 
           "Delivery Date": entireRow["Delivery Date"], 
           "Delivery Confirmed": entireRow["Delivery Confirmed"],    
-          "Platform": "GOAT",    
-          
+          "Platform": entireRow["Platform"]
       },
   
   ])  
@@ -354,7 +350,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "hasStorageEmail": _fineParseGoat.hasStorageEmail, 
                       "Purchase Date": _fineParseGoat.date,
                       "Delivery Date": _fineParseGoat.date,
-                      "Platform": "GOAT"
+                      "Platform": _fineParseGoat.website,
                   }])
                   console.log("Goat Sheet Updated")
           }
@@ -386,7 +382,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "Total Paid": _fineParseGoat.totalPaid, 
                       "hasConfirmedEmail": _fineParseGoat.hasConfirmedEmail, 
                       "Purchase Date": _fineParseGoat.date,
-                      "Platform": "GOAT",
+                      "Platform": _fineParseGoat.website,
                   }])
                   console.log("Goat Sheet Updated")
           }
@@ -432,7 +428,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
   }
 // ---------------------------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------stockx below---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------------
   async function iterateAndAddSinglesStockX () { 
     for (const _fineParseStockX of _fineParseArray) {
@@ -447,6 +443,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
               if (row['Order Number'] == _fineParseStockX?.orderNumber) {
                   rows[index]['hasDeliveredEmail'] = _fineParseStockX.hasDeliveredEmail
                   rows[index]['Delivery Date'] = _fineParseStockX.date
+                  rows[index]['Platform'] = _fineParseStockX.website
                   rows[index].save()
                   console.log("sheet updated")
                   deliveredEmailMatched = true
@@ -455,6 +452,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
   
           if (!deliveredEmailMatched) {// if a confirmed entry does not exist, then insert one but label it for delivery too
               console.log("delivery email here, but no confirmation entry....creating confirm row and marking delivered")
+              console.log("🚀 ~ 1111111111111-------------------------", _fineParseStockX)
+
               const moreRows = await sheet.addRows([
                   { 
                       "Style ID": _fineParseStockX.styleID, 
@@ -470,7 +469,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
                       "Purchase Date": _fineParseStockX.date,
                       "Delivery Date": _fineParseStockX.date,
-                      "Platform": "StockX",
+                      "Platform": _fineParseStockX.website,
                   }])
                   console.log("sheet updated")
           }
@@ -481,6 +480,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
               if (row['Order Number'] == _fineParseStockX?.orderNumber) {
                   rows[index]['hasConfirmedEmail'] = _fineParseStockX.hasConfirmedEmail
                   rows[index]['Purchase Date'] = _fineParseStockX.date
+                  rows[index]['Platform'] = _fineParseStockX.website
                   rows[index].save()
                   console.log("sheet updated")
                   confirmedEmailMatched = true
@@ -489,6 +489,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
   
           if (!confirmedEmailMatched) {
               console.log("confirmed email here, but no delivery entry....creating confirm row and marking confirmed")
+              console.log("🚀 ~ 2222222222----------------", _fineParseStockX)
+
               const moreRows = await sheet.addRows([
                   { 
                       "Style ID": _fineParseStockX.styleID, 
@@ -502,7 +504,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "Total Payment": _fineParseStockX.totalPayment, 
                       "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
                       "Purchase Date": _fineParseStockX.date,
-                      "Platform": "StockX",
+                      "Platform": _fineParseStockX.website,
                   }])
                   console.log("sheet updated")
           }
@@ -521,6 +523,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
             })
             if (!refundEmailMatched) {
               console.log("refund email here, but no delivery/confirmation entry....creating refund row and marking confirmed")
+              console.log("🚀 ~ 33333333----------------------------------", _fineParseStockX)
+
               const moreRows = await sheet.addRows([
                   { 
                       "Style ID": _fineParseStockX.styleID, 
@@ -534,7 +538,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "Total Payment": _fineParseStockX.totalPayment, 
                       "Is Cancelled": _fineParseStockX.isRefund, 
                       "Purchase Date": _fineParseStockX.date,
-                      "Platform": "StockX",
+                      "Platform": _fineParseStockX.website,
                   }])
                   console.log("sheet updated")
           }
@@ -562,7 +566,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
           "hasStorageEmail": _fineParse.hasStorageEmail, 
           "Delivery Date": _fineParse.date,
-          "Delivery Confirmed": _fineParse.hasStorageEmail
+          "Delivery Confirmed": _fineParse.hasStorageEmail,
+          "Platform": _fineParse.website
         }
       } else if (_fineParse?.hasConfirmedEmail) { //confirmation email...
         return { 
@@ -578,7 +583,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "hasConfirmedEmail": _fineParse.hasConfirmedEmail, 
           "hasStorageEmail": _fineParse.hasStorageEmail, 
           // "Delivery Date": _fineParse.date,
-          "Purchase Date": _fineParse.date
+          "Purchase Date": _fineParse.date,
+          "Platform": _fineParse.website
         }
       } 
       // Uncomment this and adjust when making Goat Refund reader 
@@ -614,7 +620,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "Total Payment": _fineParseStockX.totalPayment, 
           "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
           "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
-          "Delivery Date": _fineParseStockX.date
+          "Delivery Date": _fineParseStockX.date,
+          "Platform": _fineParseStockX.website
         }
       } else if (_fineParseStockX?.hasConfirmedEmail) { //confirmation email...
         return { 
@@ -629,7 +636,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "Total Payment": _fineParseStockX.totalPayment, 
           "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
           "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
-          "Purchase Date": _fineParseStockX.date
+          "Purchase Date": _fineParseStockX.date,
+          "Platform": _fineParseStockX.website
         }
       } else { //refund email
         return { 
@@ -644,7 +652,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "Total Payment": _fineParseStockX.totalPayment, 
           "Is Cancelled": _fineParseStockX.isRefund, 
           "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
-          "Purchase Date": _fineParseStockX.date
+          "Purchase Date": _fineParseStockX.date,
+          "Platform": _fineParseStockX.website
         }
       }
     }
@@ -694,10 +703,10 @@ function getImageFromGoatEmail(html){
 function getImageFromStockX(html){
   let res
   let splitArray = html.split('src="')
-  splitArray.forEach(line => {
+  splitArray.reverse().forEach(line => { //reversed because multiple images in  email, and reversed order gives main image first.
     if (line.includes("images.stockx.com")) {
       let targetLine = line
-      let end = targetLine.indexOf("?fit=")
+      let end = targetLine.indexOf('"')
       let justImage = targetLine.slice(0, end)
       console.log("🚀 ~ file: emailV2.js ~ line 694 ~ getImageFromStockX ~ justImage", justImage)
       res = justImage

@@ -1,5 +1,13 @@
 export async function sendWebhookManyStockX(_fineParseArray, webhookUrl) {
 
+
+    function handleTooLongUrl(url) {
+        if (url.length > 200) {
+            return ''
+        }
+        else return url
+    }
+
     function returnEmailType(_fineParse){
         let result = ''
         if (_fineParse?.hasDeliveredEmail) {
@@ -40,6 +48,7 @@ export async function sendWebhookManyStockX(_fineParseArray, webhookUrl) {
 
 
 
+
     function removeSizeFromTitle(longUrl){
         let start = longUrl.indexOf("(") - 1
         let end = longUrl.indexOf(")") - 1
@@ -62,8 +71,7 @@ export async function sendWebhookManyStockX(_fineParseArray, webhookUrl) {
             author: {
               name: "New StockX Email Detected",
             },
-            thumbnail: { url:  _fineParse?.image},
-            // thumbnail: { url:  imageUrlNoProduct},
+            thumbnail: { url:  handleTooLongUrl(_fineParse?.image)},
             title: _fineParse.title,
             description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`,
             color: hexToDecimal("#5B9D66"),

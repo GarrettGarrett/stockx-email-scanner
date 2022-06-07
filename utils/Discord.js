@@ -38,7 +38,12 @@ export async function sendWebhook(_fineParse, webhookUrl) {
     myHeaders.append("sec-fetch-mode", "cors");
     myHeaders.append("sec-fetch-site", "cross-site");
 
-
+    function handleTooLongUrl(url) {
+        if (url.length > 200) {
+            return ''
+        }
+        else return url
+    }
 
     function removeSizeFromTitle(longUrl){
         let start = longUrl.indexOf("(") - 1
@@ -58,7 +63,7 @@ export async function sendWebhook(_fineParse, webhookUrl) {
         author: {
           name: "New StockX Email Detected",
         },
-        thumbnail: { url:  _fineParse?.image},
+        thumbnail: { url:  handleTooLongUrl(_fineParse?.image)},
         // thumbnail: { url:  imageUrlNoProduct},
         title: _fineParse.title,
         description: `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nTotal: ${_fineParse.totalPayment}\nEmail Type: ${returnEmailType(_fineParse)}`,
