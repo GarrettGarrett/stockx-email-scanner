@@ -35,10 +35,7 @@ export async function sendWebhookGoat(_fineParse, webhookUrl) {
         author: {
           name: "New GOAT Email Detected",
         },
-        // image: {
-        //     url: "https://image.goat.com/750/attachments/product_template_pictures/images/035/924/748/original/616017_00.png.png"
-        // 
-        
+        thumbnail: { url:  _fineParse.image},
         title: _fineParse.title,
         description: `Style ID: ${_fineParse.styleID}\nOrder: #####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 4)}\nEmail Type: ${returnEmailType(_fineParse)}`,
         color: hexToDecimal("#5C65ED"),
@@ -48,16 +45,14 @@ export async function sendWebhookGoat(_fineParse, webhookUrl) {
     var myEmbedSubTotal = {
         author: {
           name: "New GOAT Email Detected",
-        },
-        // image: {
-        //     url: "https://image.goat.com/750/attachments/product_template_pictures/images/035/924/748/original/616017_00.png.png"
-        // 
-        
+        }, 
+        thumbnail: { url:  _fineParse.image}, 
         title: _fineParse.title,
         description: `Style ID: ${_fineParse.styleID}\nOrder: #####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 4)}\nSub Total: ${_fineParse.subTotal}\nEmail Type: ${returnEmailType(_fineParse)}`,
         color: hexToDecimal("#5C65ED"),
         timestamp: new Date()
     }
+    
 
       var raw = JSON.stringify({
         username: "GOAT Importer",

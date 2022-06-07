@@ -163,7 +163,7 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
     fineDetails["size"] = rawDetails?.size 
     fineDetails["condition"] = rawDetails?.condition 
     fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf("#") + 1, rawDetails.orderNumber.length)  //Order #476756560 == 476756560
-    fineDetails["subTotal"] = rawDetails['subTotal'].substring(rawDetails.subTotal.indexOf("$") + 1, rawDetails.subTotal.length)  
+    fineDetails["subTotal"] = rawDetails['subTotal'].substring(rawDetails.subTotal.indexOf("$") + 0, rawDetails.subTotal.length)  
     fineDetails["shipping"] = rawDetails['shipping'].substring(rawDetails.shipping.indexOf("$") + 1, rawDetails.shipping.length)  
     fineDetails["goatCredit"] = rawDetails['goatCredit'].substring(rawDetails.goatCredit.indexOf("goat credit") + 11, rawDetails.goatCredit.length)  
     fineDetails["totalPaid"] = rawDetails['totalPaid'].substring(rawDetails.totalPaid.indexOf("$") + 1, rawDetails.totalPaid.length)  
@@ -668,7 +668,35 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
     return true
 }
 
+function getImageFromGoatEmail(html){
+  let res
+  let splitArray = html.split('<img src="')
+  splitArray.forEach(line => {
+    if (line.includes("product_template_pictures")){
+      let largeLine = line
+      let end = largeLine.indexOf('" width="')
+      let justImage = largeLine.slice(0,end)
+      console.log("🚀 ~ file: emailV2.js ~ line 678 ~ getImageFromGoatEmail ~ justImage", justImage)
+      res = justImage
+    }
+  })
+  return res
+}
 
+function getImageFromStockX(html){
+  let res
+  let splitArray = html.split('src="')
+  splitArray.forEach(line => {
+    if (line.includes("images.stockx.com")) {
+      let targetLine = line
+      let end = targetLine.indexOf("?fit=")
+      let justImage = targetLine.slice(0, end)
+      console.log("🚀 ~ file: emailV2.js ~ line 694 ~ getImageFromStockX ~ justImage", justImage)
+      res = justImage
+    }
+  })
+  return res
+}
 
 export default async (req, res) => {
   
@@ -694,12 +722,13 @@ export default async (req, res) => {
                         // MAIN
                         simpleParser(stream, async (err, parsed) => {
                           // const {from, subject, textAsHtml, text, date} = parsed;
-
+                          
                           if (parsed?.text?.includes("GOAT")) { //handle GOAT emails here
                             let _largeScaleParseGoat = largeScaleParseGoat(parsed.text, parsed.subject, subtractHours(4, parsed.date))
                             let _fineParseGoat = fineParseGoat(_largeScaleParseGoat, parsed.subject)
                             console.log("🚀 ~ file: emailV2.js ~ line 632 ~ simpleParser ~ _fineParseGoat", _fineParseGoat)
                             if (_fineParseGoat?.orderNumber){ //ignore 'unknowns'
+                              _fineParseGoat.image = getImageFromGoatEmail(parsed.html)//set image from email html
                               _fineParseGoatList.push(_fineParseGoat)
                             }
                           }
@@ -709,6 +738,7 @@ export default async (req, res) => {
                               let _largeScaleParseStockX = largeScaleParseStockX(parsed.text, parsed.subject, subtractHours(4, parsed.date))
                               let _fineParseStockX = fineParseStockX(_largeScaleParseStockX)
                               if (_fineParseStockX?.orderNumber){ //ignore 'unknowns'
+                                _fineParseStockX.image = getImageFromStockX(parsed.html) //get image from email html
                                 _fineParseStockXList.push(_fineParseStockX)
                               }
                               console.log("🚀 ~ file: emailV2.js ~ line 196 ~ simpleParser ~ _fineParseStockXList", _fineParseStockXList)
