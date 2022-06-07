@@ -2,7 +2,6 @@ const Imap = require('imap');
 const {simpleParser} = require('mailparser');
 const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm package
 const fs = require('fs') // File handling package
-import { sendWebhookArray } from '../../utils/DiscordArray';
 import { sendWebhook } from '../../utils/Discord';
 import {sendWebhookArrayGoat} from '../../utils/DiscordArrayGoat'
 import { sendWebhookGoat} from '../../utils/DiscordGoat'
@@ -156,6 +155,7 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
       rawDetails?.type?.includes("Confirmed") //this info is set during largescaleparseGoat
   ) {
     let fineDetails = {}
+    fineDetails["Platform"] = "GOAT"
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails?.styleID 
     fineDetails.website = "Goat"
@@ -186,6 +186,7 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
     return fineDetails
   } if (rawDetails?.type?.includes("Storage")) {
     let fineDetails = {}
+    fineDetails["Platform"] = "GOAT"
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails?.styleID 
     fineDetails.website = "Goat"
@@ -217,6 +218,7 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
     || rawDetails?.subject?.includes("Refund")
   ) {
     let fineDetails = {}
+    fineDetails["Platform"] = "GOAT"
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
     fineDetails["styleID"] = rawDetails['styleID']?.substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
     fineDetails.website = "StockX"
@@ -301,6 +303,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "Purchase Date": entireRow["Purchase Date"], 
           "Delivery Date": entireRow["Delivery Date"], 
           "Delivery Confirmed": entireRow["Delivery Confirmed"],    
+          "Platform": "GOAT",    
           
       },
   
@@ -350,7 +353,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "hasConfirmedEmail": _fineParseGoat.hasConfirmedEmail, 
                       "hasStorageEmail": _fineParseGoat.hasStorageEmail, 
                       "Purchase Date": _fineParseGoat.date,
-                      "Delivery Date": _fineParseGoat.date
+                      "Delivery Date": _fineParseGoat.date,
+                      "Platform": "GOAT"
                   }])
                   console.log("Goat Sheet Updated")
           }
@@ -381,7 +385,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "Goat Credit": _fineParseGoat.goatCredit, 
                       "Total Paid": _fineParseGoat.totalPaid, 
                       "hasConfirmedEmail": _fineParseGoat.hasConfirmedEmail, 
-                      "Purchase Date": _fineParseGoat.date
+                      "Purchase Date": _fineParseGoat.date,
+                      "Platform": "GOAT",
                   }])
                   console.log("Goat Sheet Updated")
           }
@@ -464,7 +469,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
                       "hasDeliveredEmail": _fineParseStockX.hasDeliveredEmail, 
                       "Purchase Date": _fineParseStockX.date,
-                      "Delivery Date": _fineParseStockX.date
+                      "Delivery Date": _fineParseStockX.date,
+                      "Platform": "StockX",
                   }])
                   console.log("sheet updated")
           }
@@ -495,7 +501,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "Shipping": _fineParseStockX.shipping, 
                       "Total Payment": _fineParseStockX.totalPayment, 
                       "hasConfirmedEmail": _fineParseStockX.hasConfirmedEmail, 
-                      "Purchase Date": _fineParseStockX.date
+                      "Purchase Date": _fineParseStockX.date,
+                      "Platform": "StockX",
                   }])
                   console.log("sheet updated")
           }
@@ -526,7 +533,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                       "Shipping": _fineParseStockX.shipping, 
                       "Total Payment": _fineParseStockX.totalPayment, 
                       "Is Cancelled": _fineParseStockX.isRefund, 
-                      "Purchase Date": _fineParseStockX.date
+                      "Purchase Date": _fineParseStockX.date,
+                      "Platform": "StockX",
                   }])
                   console.log("sheet updated")
           }
