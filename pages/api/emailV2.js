@@ -8,7 +8,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
-let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
