@@ -8,7 +8,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
-let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
@@ -95,7 +95,9 @@ function largeScaleParseGoat(_string, subject, date){
     rawDetails.subTotal = splitByLine[indexOfOrderSummary + 1]
     rawDetails.shipping = splitByLine[indexOfOrderSummary + 2]
     rawDetails.goatCredit = splitByLine[indexOfOrderSummary + 4]
-    rawDetails.totalPaid = splitByLine[indexOfOrderSummary + 5]
+    rawDetails.totalPaid = splitByLine[indexOfOrderSummary + 1] //set to subtotal because basically, subtotal is the total in any case because I dont pay tax or ship for these 
+
+    // rawDetails.totalPaid = splitByLine[indexOfOrderSummary + 5]
   
     return rawDetails
   }
