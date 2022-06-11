@@ -8,7 +8,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
-let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
@@ -55,6 +55,13 @@ function oneMonthsAgo(){
     var d = new Date();
     d.setMonth(d.getMonth() - 1);
     return d
+}
+
+function formatDateMMDDYYY(_date){ //2010-10-11T00:00:00+05:30
+  let date = new Date(_date)
+  let returnDate =  (((date.getMonth() > 8) ? (date.getMonth() + 1) : ('' + (date.getMonth() + 1))) + '/' + ((date.getDate() > 9) ? date.getDate() : ('' + date.getDate())) + '/' + date.getFullYear())
+  console.log("🚀 ~ file: emailV2.js ~ line 114 ~ formatDateMMDDYYY ~ returnDate", returnDate)
+  return returnDate
 }
 
 function largeScaleParseGoat(_string, subject, date){
@@ -107,6 +114,9 @@ function largeScaleParseGoat(_string, subject, date){
 
   
 }
+
+
+
 
 function largeScaleParseStockX(_string, subject, date){
   const splitByLine = _string.split(/\r?\n/)
@@ -168,9 +178,9 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
     fineDetails["totalPaid"] = rawDetails['totalPaid'].substring(rawDetails.totalPaid.indexOf("$") + 1, rawDetails.totalPaid.length)  
     
     if (rawDetails.dateRetrievedFromStamp){
-      fineDetails["date"] = rawDetails.date.substring(0,10)
+      fineDetails["date"] = (rawDetails.date.substring(0,10))
     } else { //retrieved date from body 
-      fineDetails["date"] = formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  )
+      fineDetails["date"] =  formatDateMMDDYYY( formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  ) )
     }
 
     if (rawDetails.type.includes("Confirmed")){
@@ -228,9 +238,9 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
     fineDetails["totalPayment"] = rawDetails['totalPayment'].substring(rawDetails.totalPayment.indexOf("$") + 0, rawDetails.totalPayment.length - 1)
     
     if (rawDetails.dateRetrievedFromStamp){
-      fineDetails["date"] = rawDetails.date.substring(0,10)
+      fineDetails["date"] = formatDateMMDDYYY (formatDate(rawDetails.date) )
     } else { //retrieved date from body 
-      fineDetails["date"] = formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  )
+      fineDetails["date"] = formatDateMMDDYYY( formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  ) )
     }
     
     if (rawDetails.subject.includes("Confirmed")){
