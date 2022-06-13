@@ -68,14 +68,25 @@ function largeScaleParseGoat(_string, subject, date){
   let rawDetails = {}
   
   const splitByLine = _string.split(/\r?\n/)
+  let anchorIndexForStorage
 
-  if (splitByLine.includes("Thank you for your order")) {
-    rawDetails.type = "Confirmed"
-  } if (splitByLine.includes("Your sneakers are being stored")) {
-    rawDetails.type = "Storage"
-  }
+  let n = 0
+  splitByLine.forEach(line => {
+    if (line.includes("Thank you for your order")) {
+      rawDetails.type = "Confirmed"
+    } if (line.includes("Your sneakers are being stored")) {
+      rawDetails.type = "Storage"
+    } if (line.includes("what are my options")) {
+      anchorIndexForStorage = n
+    }
+    n ++
+  })
+  
   rawDetails["date"] = date.toString()
   rawDetails["dateRetrievedFromStamp"] = true
+
+  console.log("🚀 ~ file: emailV2.js ~ line 69 ~ largeScaleParseGoat ~ rawDetails", rawDetails)
+
 
   if (rawDetails.type == "Confirmed") {
     let indexOfItemSummary = splitByLine.indexOf("item summary")
@@ -98,14 +109,18 @@ function largeScaleParseGoat(_string, subject, date){
     rawDetails.totalPaid = splitByLine[indexOfOrderSummary + 1] //set to subtotal because basically, subtotal is the total in any case because I dont pay tax or ship for these 
 
     // rawDetails.totalPaid = splitByLine[indexOfOrderSummary + 5]
-  
+
     return rawDetails
   }
 
   if (rawDetails.type == "Storage") { //in the stored email, some details are not mentioned such as brand, shipping, etc
-    let anchorText = splitByLine.indexOf("what are my options?") //will probably change
-    rawDetails.styleID = splitByLine[anchorText - 2] 
-    rawDetails.title = splitByLine[anchorText - 1] 
+    let anchorText = anchorIndexForStorage //will probably change
+    let styleIDAndTitle = parseStyleIDandTitle(splitByLine[anchorText - 2])
+    console.log("🚀 ~ file: emailV2.js ~ line 119 ~ largeScaleParseGoat ~ styleIDAndTitle", styleIDAndTitle)
+    rawDetails.styleID = styleIDAndTitle.styleID
+    rawDetails.title = styleIDAndTitle.title
+    // rawDetails.styleID = splitByLine[anchorText - 2] 
+    // rawDetails.title = splitByLine[anchorText - 1] 
     splitByLine.forEach(line => {
       if (line.includes("Order #")){
           rawDetails["orderNumber"] = line
@@ -113,8 +128,33 @@ function largeScaleParseGoat(_string, subject, date){
     })
     return rawDetails
   }
+}
 
+function parseStyleIDandTitle(_string) {
+  let data = {}
+  let parse1 = _string.replaceAll("   ", "") //`" MR530SH‌ 530v2 Retro 'Khaki' – Size US 8.5 M"`
+  let parse2 = parse1.split(" ") //'"', '', 'MR530SH‌530v2', 'Retro', "'Khaki'", '–', 'Size', 'US', '8.5', 'M"']
+  console.log("🚀 ~ file: emailV2.js ~ line 137 ~ parseStyleID ~ parse2", parse2)
   
+  let n = 0
+  let stopIterating = false
+  parse2.forEach( item => {
+    if (item.length > 3 && !stopIterating) {
+      console.log(n, "we are here")
+      let styleID = item.trim()
+      console.log("🚀 ~ file: emailV2.js ~ line 144 ~ parseStyleID ~ styleID", styleID)
+      let parse3 = parse2.slice(n + 1, parse2.length + 1)
+      console.log("🚀 ~ file: emailV2.js ~ line 147 ~ parseStyleID ~ parse3", parse3)
+      let title = parse3.join(" ")
+      console.log("🚀 ~ file: emailV2.js ~ line 149 ~ parseStyleID ~ title", title)
+      data['styleID'] = styleID
+      data['title'] = title
+      stopIterating = true
+      return data
+    }
+    n ++
+  })
+  return data
 }
 
 
@@ -295,6 +335,9 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
   async function updateUnsoldGoatRow(entireRow, _unsoldGoat, index){
     let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
 
+    console.log("🚀 ~ file: emailV2.js ~ line 338 ~ updateUnsoldGoatRow ~ unsoldGoat", unsoldGoat) //working here
+    var currentTime = new Date()
+    var year = currentTime.getFullYear()
     const moreRows = await unsoldGoat.addRows([
       { 
           "Style ID": entireRow["Style ID"], 
@@ -310,7 +353,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
           "hasStorageEmail": entireRow["hasStorageEmail"], 
           "Is Cancelled": entireRow["Is Cancelled"], 
           "Purchase Date": entireRow["Purchase Date"], 
-          "Delivery Date": entireRow["Delivery Date"], 
+          "Delivery Date": formatDateMMDDYYY(`${ entireRow["Delivery Date"]} ${year}`), 
           "Delivery Confirmed": entireRow["Delivery Confirmed"],    
           "Platform": entireRow["Platform"]
       },
