@@ -89,6 +89,7 @@ export async function sendWebhookManyStockX(_fineParseArray, webhookUrl) {
         avatar_url: "https://i.imgur.com/fYrDHMk.png",
     })
     
+    console.log("🚀 ~ file: DiscordArrayStockX.js ~ line 89 ~ sendWebhookManyStockX ~ allEmbeds", allEmbeds)
 
     var requestOptions = {
         method: 'POST',

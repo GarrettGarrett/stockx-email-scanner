@@ -8,7 +8,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
-let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
@@ -62,6 +62,41 @@ function formatDateMMDDYYY(_date){ //2010-10-11T00:00:00+05:30
   let returnDate =  (((date.getMonth() > 8) ? (date.getMonth() + 1) : ('' + (date.getMonth() + 1))) + '/' + ((date.getDate() > 9) ? date.getDate() : ('' + date.getDate())) + '/' + date.getFullYear())
   console.log("🚀 ~ file: emailV2.js ~ line 114 ~ formatDateMMDDYYY ~ returnDate", returnDate)
   return returnDate
+}
+
+function goatParseHTML(html){ //style id and title goatParse = {styleID: '', title: '', size: ''}
+  let returnObject = {}
+  let split = html.split("<a")
+  let res1 = []
+  split.forEach(line => {
+    if (line.includes(" letter-spacing: 2px; line-height: 18px")) {
+      res1.push(line)
+    }
+  })
+  let parse1 = res1[1]
+  let start = parse1.indexOf('text-decoration: none;"> ')
+  let end = parse1.indexOf('zwnj;')
+  let parse2 = parse1.slice(start + 25, end-1)
+  let styleID = parse2
+  returnObject.styleID =  styleID
+  console.log("🚀 ~ file: emailV2.js ~ line 766 ~ goatParseHTML ~ parse1", styleID)
+  
+
+  let startTitle = parse1.indexOf(`ine-height: 18px; text-transform: uppercase;"`)
+  let endTitle = parse1.indexOf(`</td> </tr> </table>`)
+  let parse3 = parse1.slice(startTitle + 47, endTitle - 1)
+  let parse4 = parse3.replaceAll("<span>", "")
+  let parse5 = parse4.replaceAll("</span>", "")
+  let parse6 = parse5.replaceAll("&#39", "")
+  let parse7 = parse6.replaceAll(";", "'")
+  let title = parse7
+  returnObject.title =  title
+  console.log("🚀 ~ file: emailV2.js ~ line 89 ~ goatParseHTML ~ title", title)
+
+  let sizeParse1 = title.split("Size")
+  let sizeParse2 = sizeParse1[1].trim()
+  returnObject.size = sizeParse2
+  return returnObject
 }
 
 function largeScaleParseGoat(_string, subject, date){
@@ -201,17 +236,22 @@ function largeScaleParseStockX(_string, subject, date){
   return rawDetails
 }
 
-function fineParseGoat(rawDetails, subject) { //only continue if confirmation or storage email
+function fineParseGoat(rawDetails, subject, parsedGoatHTML) { //only continue if confirmation or storage email
   console.log("🚀 ~ file: emailV2.js ~ line 151 ~ fineParseGoat ~ rawDetails", rawDetails)
   if (
       rawDetails?.type?.includes("Confirmed") //this info is set during largescaleparseGoat
   ) {
     let fineDetails = {}
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
-    fineDetails["styleID"] = rawDetails?.styleID 
+    // fineDetails["styleID"] = rawDetails?.styleID 
+    fineDetails["styleID"] = parsedGoatHTML?.styleID 
     fineDetails.website = "Goat"
-    fineDetails["title"] = rawDetails['title']
+    // fineDetails["title"] = rawDetails['title']
+    fineDetails["title"] = parsedGoatHTML?.title
     fineDetails["size"] = rawDetails?.size 
+    if (parsedGoatHTML?.size  ){
+      fineDetails["size"] = parsedGoatHTML?.size 
+    }
     fineDetails["condition"] = rawDetails?.condition 
     fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf("#") + 1, rawDetails.orderNumber.length)  //Order #476756560 == 476756560
     fineDetails["subTotal"] = rawDetails['subTotal'].substring(rawDetails.subTotal.indexOf("$") + 0, rawDetails.subTotal.length)  
@@ -238,9 +278,14 @@ function fineParseGoat(rawDetails, subject) { //only continue if confirmation or
   } if (rawDetails?.type?.includes("Storage")) {
     let fineDetails = {}
     fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
-    fineDetails["styleID"] = rawDetails?.styleID 
+    // fineDetails["styleID"] = rawDetails?.styleID 
+    fineDetails["styleID"] = parsedGoatHTML?.styleID 
     fineDetails.website = "Goat"
-    fineDetails["title"] = rawDetails['title']
+    // fineDetails["title"] = rawDetails['title']
+    fineDetails["title"] = parsedGoatHTML?.title 
+    if (parsedGoatHTML?.size  ){
+      fineDetails["size"] = parsedGoatHTML?.size 
+    }
     fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf("#") + 1, rawDetails.orderNumber.length)  //Order #476756560 == 476756560
     
     if (rawDetails.dateRetrievedFromStamp){
@@ -333,9 +378,9 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
   console.log("🚀 ~ file: emailV2.js ~ line 134 ~  ~ justOrderNumbers", justOrderNumbers)
 
   async function updateUnsoldGoatRow(entireRow, _unsoldGoat, index){
+    console.log("UPDATING UNSOLD GOAT <-----------------------------------------")
     let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
 
-    console.log("🚀 ~ file: emailV2.js ~ line 338 ~ updateUnsoldGoatRow ~ unsoldGoat", unsoldGoat) //working here
     var currentTime = new Date()
     var year = currentTime.getFullYear()
     const moreRows = await unsoldGoat.addRows([
@@ -359,6 +404,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
       },
   
   ])  
+    console.log("🚀 ~ file: emailV2.js ~ line 408 ~ updateUnsoldGoatRow ~ moreRows", moreRows)
   }
 
 
@@ -372,11 +418,11 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
         if (_fineParseGoat?.hasStorageEmail){ //dealing with hasStorageEmail entry.  
           let deliveredEmailMatched = false // check to see if a confirmed entry exists - fine if it doesn't.
           rows.forEach((row, index) => {
+              let entireRow = rows[index]//._rawData fpr just values
               if (row['Order Number'] == _fineParseGoat?.orderNumber) {
                   rows[index]['hasStorageEmail'] = _fineParseGoat.hasStorageEmail
                   rows[index]['Delivery Date'] = _fineParseGoat.date
                   rows[index]['Delivery Confirmed'] = _fineParseGoat.hasStorageEmail
-                  let entireRow = rows[index]//._rawData fpr just values
                   rows[index].save()
                   console.log("Goat Sheet Updated")
                   deliveredEmailMatched = true
@@ -758,7 +804,7 @@ function getImageFromGoatEmail(html){
 function getImageFromStockX(html){
   let res
   let splitArray = html.split('src="')
-  splitArray.reverse().forEach(line => { //reversed because multiple images in  email, and reversed order gives main image first.
+  splitArray.reverse().forEach(line => { //reversed because multiple images in  email, and reversed order gives primary image first.
     if (line.includes("images.stockx.com")) {
       let targetLine = line
       let end = targetLine.indexOf('"')
@@ -796,8 +842,9 @@ export default async (req, res) => {
                           // const {from, subject, textAsHtml, text, date} = parsed;
                           
                           if (parsed?.text?.includes("GOAT")) { //handle GOAT emails here
+                            let parsedGoatHTML = goatParseHTML(parsed.html) //used for title, size, style id
                             let _largeScaleParseGoat = largeScaleParseGoat(parsed.text, parsed.subject, subtractHours(4, parsed.date))
-                            let _fineParseGoat = fineParseGoat(_largeScaleParseGoat, parsed.subject)
+                            let _fineParseGoat = fineParseGoat(_largeScaleParseGoat, parsed.subject, parsedGoatHTML)
                             console.log("🚀 ~ file: emailV2.js ~ line 632 ~ simpleParser ~ _fineParseGoat", _fineParseGoat)
                             if (_fineParseGoat?.orderNumber){ //ignore 'unknowns'
                               _fineParseGoat.image = getImageFromGoatEmail(parsed.html)//set image from email html
