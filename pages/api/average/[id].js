@@ -183,10 +183,14 @@ export default async (req, res) => {
       console.log("🚀 ~ file: [id].js ~ line 172 ~ cleanId", cleanId)
 
       let sheetData = await readSheets(cleanId)
+      console.log("🚀 ~ file: [id].js ~ line 186 ~ sheetData", sheetData)
       
 
       let matches = findMatch(cleanId, sheetData) //all entries that have styleid + size, this includes the original entry
+      console.log("🚀 ~ file: [id].js ~ line 190 ~ matches", matches)
+      
       let average = calcAverage(matches)
+      console.log("🚀 ~ file: [id].js ~ line 192 ~ average", average)
       if (average) {
         res.status(200).json({ success: true, average })
       }
