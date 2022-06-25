@@ -187,7 +187,10 @@ export default async (req, res) => {
 
       let matches = findMatch(cleanId, sheetData) //all entries that have styleid + size, this includes the original entry
       let average = calcAverage(matches)
-      res.status(200).json({ success: true, average })
+      if (average) {
+        res.status(200).json({ success: true, average })
+      }
+      
     }
 }
 
