@@ -179,7 +179,7 @@ export default async (req, res) => {
       let average = calcAverage(matches)
       console.log("🚀 ~ file: [id].js ~ line 192 ~ average", average)
      
-        res.status(200).json({ average })
+        res.status(200).json({ average, matches })
      
       
     }

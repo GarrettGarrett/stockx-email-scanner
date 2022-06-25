@@ -8,7 +8,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
-let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
@@ -55,6 +55,15 @@ function oneMonthsAgo(){
     var d = new Date();
     d.setMonth(d.getMonth() - 1);
     return d
+}
+
+
+function cleanUpStyleId(string){
+  let parse1 = string.replaceAll("-", "")
+  let parse2 = parse1.trim()
+  let parse3 = parse2.replaceAll("/","")
+  let parse4 = parse3.replaceAll(" ", "")
+  return parse4
 }
 
 function formatDateMMDDYYY(_date){ //2010-10-11T00:00:00+05:30
@@ -323,6 +332,8 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
     fineDetails["processingFee"] = rawDetails['processingFee'].substring(rawDetails.processingFee.indexOf(": ") + 2, rawDetails.processingFee.length)  
     fineDetails["shipping"] = rawDetails['shipping'].substring(rawDetails.shipping.indexOf(": ") + 2, rawDetails.shipping.length)  
     fineDetails["totalPayment"] = rawDetails['totalPayment'].substring(rawDetails.totalPayment.indexOf("$") + 0, rawDetails.totalPayment.length - 1)
+    fineDetails["Calc Average"] = `=HYPERLINK("https://stockx-email-scanner.vercel.app/api/average/${cleanUpStyleId(fineDetails["styleID"])}@${fineDetails["size"]}", "Calc Average")`
+
     
     if (rawDetails.dateRetrievedFromStamp){
       fineDetails["date"] = formatDateMMDDYYY (formatDate(rawDetails.date) )
@@ -559,6 +570,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                   { 
                       "Style ID": _fineParseStockX.styleID, 
                       "Size": _fineParseStockX.size, 
+                      "Calc Average": _fineParseStockX['Calc Average'],
                       "Title": _fineParseStockX.title, 
                       "Condition": _fineParseStockX.condition, 
                       "Order Number": _fineParseStockX.orderNumber, 
@@ -596,6 +608,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                   { 
                       "Style ID": _fineParseStockX.styleID, 
                       "Size": _fineParseStockX.size, 
+                      "Calc Average": _fineParseStockX['Calc Average'],
                       "Title": _fineParseStockX.title, 
                       "Condition": _fineParseStockX.condition, 
                       "Order Number": _fineParseStockX.orderNumber, 
@@ -630,6 +643,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                   { 
                       "Style ID": _fineParseStockX.styleID, 
                       "Size": _fineParseStockX.size, 
+                      "Calc Average": _fineParseStockX['Calc Average'],
                       "Title": _fineParseStockX.title, 
                       "Condition": _fineParseStockX.condition, 
                       "Order Number": _fineParseStockX.orderNumber, 
@@ -712,6 +726,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
         return { // delivery email...
           "Style ID": _fineParseStockX.styleID, 
           "Size": _fineParseStockX.size, 
+          "Calc Average": _fineParseStockX['Calc Average'],
           "Title": _fineParseStockX.title, 
           "Condition": _fineParseStockX.condition, 
           "Order Number": _fineParseStockX.orderNumber, 
@@ -728,6 +743,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
         return { 
           "Style ID": _fineParseStockX.styleID, 
           "Size": _fineParseStockX.size, 
+          "Calc Average": _fineParseStockX['Calc Average'],
           "Title": _fineParseStockX.title, 
           "Condition": _fineParseStockX.condition, 
           "Order Number": _fineParseStockX.orderNumber, 
@@ -744,6 +760,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
         return { 
           "Style ID": _fineParseStockX.styleID, 
           "Size": _fineParseStockX.size, 
+          "Calc Average": _fineParseStockX['Calc Average'],
           "Title": _fineParseStockX.title, 
           "Condition": _fineParseStockX.condition, 
           "Order Number": _fineParseStockX.orderNumber, 
