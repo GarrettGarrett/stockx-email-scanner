@@ -18,19 +18,6 @@ async function getDoc() {
 
 const connectDoc = getDoc()
 
-const imapConfig = {
-    user: process.env.GMAIL_USER,
-    password: process.env.APP_PASSWORD,
-    host: 'imap.gmail.com',
-    port: 993,
-    tls: true,
-      authTimeout: 10000,
-      connTimeout: 30000,
-      keepalive: true,
-      tlsOptions: {
-      rejectUnauthorized: false
-  }
-}
 
 async function readSheets(styleIdsize){
     // combine styleID + size for all entries. make that the key.  Make the value total price.
@@ -188,11 +175,11 @@ export default async (req, res) => {
 
       let matches = findMatch(cleanId, sheetData) //all entries that have styleid + size, this includes the original entry
       console.log("🚀 ~ file: [id].js ~ line 190 ~ matches", matches)
-      
+
       let average = calcAverage(matches)
       console.log("🚀 ~ file: [id].js ~ line 192 ~ average", average)
       if (average) {
-        res.status(200).json({ success: true, average })
+        res.status(200).json({ average })
       }
       
     }
