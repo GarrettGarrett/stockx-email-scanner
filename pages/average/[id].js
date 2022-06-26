@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import useSWR from "swr";
 import AverageListing from '../../components/AverageListing';
+import LoadingLottie from '../../components/LoadingLottie';
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
@@ -18,8 +19,18 @@ function round(value, decimals) {
     return `Average: $${Number(Math.round(value+'e'+decimals)+'e-'+decimals)}`
    }   
 
+
   if (!data?.data) {
-      return <p>Loading</p>
+      return (
+          <>
+           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto">
+                    <LoadingLottie />
+                </div>
+            </div>
+        
+          </>
+      )
   }
   return (
       <>
