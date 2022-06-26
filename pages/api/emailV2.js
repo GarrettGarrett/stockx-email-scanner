@@ -8,7 +8,7 @@ import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
 
 // #######################################################
-let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
@@ -59,6 +59,8 @@ function oneMonthsAgo(){
 
 
 function cleanUpStyleId(string){
+console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
+  
   let parse1 = string.replaceAll("-", "")
   let parse2 = parse1.trim()
   let parse3 = parse2.replaceAll("/","")
@@ -322,16 +324,26 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
     || rawDetails?.subject?.includes("Refund")
   ) {
     let fineDetails = {}
-    fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
-    fineDetails["styleID"] = rawDetails['styleID']?.substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
+    try {
+      fineDetails["styleID"] = rawDetails['styleID'].substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
+    } catch {
+      fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
+    }
     fineDetails.website = "StockX"
-    fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(":") + 2, rawDetails.size.length)  
+    try {
+      fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(":") + 2, rawDetails.size.length)  
+    } catch {
+      fineDetails["size"] = "None" 
+
+    }
     fineDetails["condition"] = rawDetails['condition'].substring(rawDetails.condition.indexOf(":") + 2, rawDetails.condition.length)  
     fineDetails["orderNumber"] = rawDetails['orderNumber'].substring(rawDetails.orderNumber.indexOf(":") + 2, rawDetails.orderNumber.length)  
     fineDetails["purchasePrice"] = rawDetails['purchasePrice'].substring(rawDetails.purchasePrice.indexOf(": ") + 2, rawDetails.purchasePrice.length)  
     fineDetails["processingFee"] = rawDetails['processingFee'].substring(rawDetails.processingFee.indexOf(": ") + 2, rawDetails.processingFee.length)  
     fineDetails["shipping"] = rawDetails['shipping'].substring(rawDetails.shipping.indexOf(": ") + 2, rawDetails.shipping.length)  
     fineDetails["totalPayment"] = rawDetails['totalPayment'].substring(rawDetails.totalPayment.indexOf("$") + 0, rawDetails.totalPayment.length - 1)
+    console.log("🚀 ~ file: emailV2.js ~ line 345 ~ fineParseStockX ~ fineDetails", fineDetails)
+    
     fineDetails["Calc Average"] = `=HYPERLINK("https://stockx-email-scanner.vercel.app/api/average/${cleanUpStyleId(fineDetails["styleID"])}@${fineDetails["size"]}", "Calc Average")`
 
     
