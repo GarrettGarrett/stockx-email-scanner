@@ -45,7 +45,8 @@ const applications = [
 //     "total": "$180.44"
 // }
 
-export default function AverageListing({matches}) {
+export default function AverageListing({matches, thumb}) {
+  console.log("🚀 ~ file: AverageListing.js ~ line 49 ~ AverageListing ~ thumb", thumb)
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-md">
       <ul role="list" className="divide-y divide-gray-200">
@@ -55,7 +56,12 @@ export default function AverageListing({matches}) {
               <div className="flex items-center px-4 py-4 sm:px-6">
                 <div className="min-w-0 flex-1 flex items-center">
                   <div className="flex-shrink-0">
-                    {/* <img className="h-12 w-12 rounded-full" src={match.applicant.imageUrl} alt="" /> */}
+                      {
+                          thumb ? 
+                          <img className="h-12 w-12 rounded-lg object-scale-down " src={thumb} alt="" />
+                            :
+                            null
+                      }
                   </div>
                   <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
                     <div>
