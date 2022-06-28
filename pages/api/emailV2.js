@@ -649,7 +649,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
             })
             if (!refundEmailMatched) {
               console.log("refund email here, but no delivery/confirmation entry....creating refund row and marking confirmed")
-              console.log("🚀 ~ 33333333----------------------------------", _fineParseStockX)
+              console.log("🚀 ~ ----------------------------------", _fineParseStockX)
 
               const moreRows = await sheet.addRows([
                   { 

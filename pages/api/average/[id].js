@@ -145,9 +145,9 @@ function cleanUpId(styleId, size) {
 function calcAverage(matches){
   let total = 0
   matches.forEach(match => {
-    console.log("🚀 ~ file: [id].js ~ line 163 ~ calcAverage ~ parseInt(match.total)",Number(match.total.replace(/[^0-9.-]+/g,"")))
+    console.log("🚀 ~ file: [id].js ~ line 163 ~ calcAverage ~ parseInt(match.total)",Number(match?.total?.replace(/[^0-9.-]+/g,"")))
 
-    total +=  Number(match.total.replace(/[^0-9.-]+/g,""));
+    total +=  Number(match?.total?.replace(/[^0-9.-]+/g,""));
   })
   let average = total / matches.length
   console.log("🚀 ~ file: [id].js ~ line 166 ~ calcAverage ~ matches.length", matches.length)
