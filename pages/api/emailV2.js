@@ -342,9 +342,9 @@ function fineParseStockX(rawDetails, subject) { // only continue if confirmation
     fineDetails["processingFee"] = rawDetails['processingFee'].substring(rawDetails.processingFee.indexOf(": ") + 2, rawDetails.processingFee.length)  
     fineDetails["shipping"] = rawDetails['shipping'].substring(rawDetails.shipping.indexOf(": ") + 2, rawDetails.shipping.length)  
     fineDetails["totalPayment"] = rawDetails['totalPayment'].substring(rawDetails.totalPayment.indexOf("$") + 0, rawDetails.totalPayment.length - 1)
-    console.log("🚀 ~ file: emailV2.js ~ line 345 ~ fineParseStockX ~ fineDetails", fineDetails)
-    
     fineDetails["Calc Average"] = `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(fineDetails["styleID"])}@${fineDetails["size"]}", "Calc Average")`
+    console.log("🚀 ~ file: emailV2.js ~ line 345 ~ fineParseStockX ~ fineDetails", fineDetails)
+
 
     
     if (rawDetails.dateRetrievedFromStamp){
@@ -568,6 +568,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                   rows[index]['hasDeliveredEmail'] = _fineParseStockX.hasDeliveredEmail
                   rows[index]['Delivery Date'] = _fineParseStockX.date
                   rows[index]['Platform'] = _fineParseStockX.website
+                  rows[index]['Calc Average'] = _fineParseStockX['Calc Average']
                   rows[index].save()
                   console.log("sheet updated")
                   deliveredEmailMatched = true
