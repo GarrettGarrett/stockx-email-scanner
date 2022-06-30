@@ -60,7 +60,7 @@ export default function AverageListing({matches, thumb}) {
                           thumb ? 
                           <img className="h-12 w-12 rounded-lg object-scale-down " src={thumb} alt="" />
                             :
-                            null
+                          <div className='h-12 w-12 rounded-lg bg-slate-200 animate-pulse'/>
                       }
                   </div>
                   <div className="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
