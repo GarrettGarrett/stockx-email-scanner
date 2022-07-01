@@ -13,7 +13,7 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
             successUpdates.push(num)
 
             // now update the unsold sx sheet
-            let varUpdateUnsoldSx = updateUnsoldSx(rows[index], doc)
+            let varUpdateUnsoldSx = await updateUnsoldSx(rows[index], doc)
         }
     })
 }
