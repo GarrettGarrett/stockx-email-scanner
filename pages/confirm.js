@@ -46,10 +46,7 @@ function confirm() {
                         <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
                         <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
                         <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
-                        <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
-                        <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
-                        <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
-                        <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
+                       
                        
                     </div>
 
