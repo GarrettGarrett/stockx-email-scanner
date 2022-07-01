@@ -9,15 +9,16 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
             rows[index]['Delivery Confirmed'] = 'TRUE'
             rows[index]['Calc Average']= `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(entireRow["Style ID"])}@${entireRow["Size"]}", "Calc Average")`
 
-            let saved = await rows[index].save()
+            rows[index].save()
+            rows.save
             console.log(`${num} marked true in sheet`)
             successUpdates.push(num)
 
             // now update the unsold sx sheet
-            let varUpdateUnsoldSx = await updateUnsoldSx(rows[index], doc)
+            updateUnsoldSx(rows[index], doc)
         }
     })
-    return "complete"
+    
 }
 
 
@@ -66,6 +67,9 @@ async function updateUnsoldSx(entireRow, doc){
       },
   
   ])  
+  if (moreRows){
+      return moreRows
+  }
   }
 
 export default async (req, res) => {
