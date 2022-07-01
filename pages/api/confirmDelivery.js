@@ -75,7 +75,7 @@ export default async (req, res) => {
             // Request Body Start --
             let successUpdates = []
             let orderNumbers = req.body.orderNumbers
-            orderNumbers = [...new Set(orderNumbers)] //remove duplicates
+            // orderNumbers = [...new Set(orderNumbers)] //remove duplicates
             rows.forEach((row, index) => {
                 if (orderNumbers.includes(row['Order Number'])) {
                     let num = orderNumbers[orderNumbers.indexOf(row['Order Number'])]
