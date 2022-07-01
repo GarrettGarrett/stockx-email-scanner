@@ -18,7 +18,7 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
             updateUnsoldSx(rows[index], doc)
         }
     })
-    
+    return "done"
 }
 
 
