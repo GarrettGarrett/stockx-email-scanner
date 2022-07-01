@@ -34,7 +34,7 @@ console.log("🚀 ~ file: NotificationBox.js ~ line 8 ~ Notification ~ res", res
                   </div>
                   <div className="ml-3 w-0 flex-1 pt-0.5">
                     <p className="text-sm font-medium text-gray-900">{`Successfully Updated ${res?.length} Items`}</p>
-                    <p className="mt-1 text-sm text-gray-500">{res.join('\r\n')}</p>
+                    <p className="mt-1 text-sm text-gray-500">{res?.join('\r\n')}</p>
                   </div>
                   <div className="ml-4 flex-shrink-0 flex">
                     <button
