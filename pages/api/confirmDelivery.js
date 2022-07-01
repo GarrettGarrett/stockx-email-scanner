@@ -103,6 +103,7 @@ export default async (req, res) => {
             console.log("🚀 ~ file: confirmDelivery.js ~ line 98 ~ iterate", iterate)
 
             if (iterate){
+                await new Promise(r => setTimeout(r, 5000));
                 res.status(201).json({ success: true, data: successUpdates })
             }
            
