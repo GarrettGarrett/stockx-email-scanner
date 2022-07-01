@@ -17,6 +17,7 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
             let varUpdateUnsoldSx = await updateUnsoldSx(rows[index], doc)
         }
     })
+    return "complete"
 }
 
 
@@ -95,8 +96,12 @@ export default async (req, res) => {
             let successUpdates = []
             let orderNumbers = req.body.orderNumbers
             let iterate = await iterateRows(rows, orderNumbers, successUpdates, doc)
+            console.log("🚀 ~ file: confirmDelivery.js ~ line 98 ~ iterate", iterate)
+
+            if (iterate){
+                res.status(201).json({ success: true, data: successUpdates })
+            }
            
-            res.status(201).json({ success: true, data: successUpdates })
 
         } else {
             res.status(400).json({ success: false, data: "missing order numbers" })
