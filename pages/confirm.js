@@ -9,7 +9,6 @@ function confirm() {
     const [clearInput, setClearInput] = useState(false)
     const [show, setShow] = useState(false)
     const [res, setRes] = useState()
-    console.log("🚀 ~ file: confirm.js ~ line 12 ~ confirm ~ res", res)
 
 
 
@@ -21,7 +20,6 @@ function confirm() {
       body: JSON.stringify({orderNumbers:orderNumbers}) 
     })
     const {data} = await res.json() 
-    console.log("🚀 ~ file: confirm.js ~ line 24 ~ markDelivered ~ data", data)
     setLoading(false)
     setClearInput(true)
     setShow(true)
@@ -42,7 +40,7 @@ function confirm() {
 
                     <div className='pt-4'>
                         <label htmlFor="account-number" className="block text-lg font-medium text-gray-700">
-                            Order Number
+                            Input Order Numbers
                         </label>
                         <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
                         <OrderNumbers orderNumbers={orderNumbers} setOrderNumbers={setOrderNumbers} clearInput={clearInput}/>
@@ -59,9 +57,7 @@ function confirm() {
                     <button
                             onClick={async () => {
                                 if (orderNumbers.length > 0){
-                                    console.log("🚀 ~ file: confirm.js ~ line 50 ~ confirm ~ orderNumbers", orderNumbers)
                                     let res = await markDelivered(orderNumbers) //success, data
-                                    console.log("🚀 ~ file: confirm.js ~ line 51 ~ confirm ~ res", res)
                                 }}}
                                 
                             type="button"
@@ -73,7 +69,7 @@ function confirm() {
                                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
                                             :
-                                            "Submit"   
+                                            "Confirm Delivery"   
                         }</span>
                         </button>
                     </div>
