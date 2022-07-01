@@ -1,7 +1,8 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm package
 
 async function iterateRows(rows, orderNumbers, successUpdates, doc) {
-    rows.forEach((row, index) => {
+    rows.forEach(async (row, index) => {
+    // for (var row of rows) {
         if (orderNumbers.includes(row['Order Number'])) {
             let num = orderNumbers[orderNumbers.indexOf(row['Order Number'])]
             let entireRow = rows[index]
@@ -17,6 +18,7 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
         }
     })
 }
+
 
 function cleanUpStyleId(string){
     console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
