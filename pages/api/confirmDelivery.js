@@ -1,5 +1,22 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm package
 
+async function iterateRows(rows, orderNumbers, successUpdates, doc) {
+    rows.forEach((row, index) => {
+        if (orderNumbers.includes(row['Order Number'])) {
+            let num = orderNumbers[orderNumbers.indexOf(row['Order Number'])]
+            let entireRow = rows[index]
+            rows[index]['Delivery Confirmed'] = 'TRUE'
+            rows[index]['Calc Average']= `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(entireRow["Style ID"])}@${entireRow["Size"]}", "Calc Average")`,  
+
+            rows[index].save()
+            console.log(`${num} marked true in sheet`)
+            successUpdates.push(num)
+
+            // now update the unsold sx sheet
+            let varUpdateUnsoldSx = updateUnsoldSx(rows[index], doc)
+        }
+    })
+}
 
 function cleanUpStyleId(string){
     console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
@@ -75,22 +92,8 @@ export default async (req, res) => {
             // Request Body Start --
             let successUpdates = []
             let orderNumbers = req.body.orderNumbers
-            // orderNumbers = [...new Set(orderNumbers)] //remove duplicates
-            rows.forEach((row, index) => {
-                if (orderNumbers.includes(row['Order Number'])) {
-                    let num = orderNumbers[orderNumbers.indexOf(row['Order Number'])]
-                    let entireRow = rows[index]
-                    rows[index]['Delivery Confirmed'] = 'TRUE'
-                    rows[index]['Calc Average']= `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(entireRow["Style ID"])}@${entireRow["Size"]}", "Calc Average")`,  
-
-                    rows[index].save()
-                    console.log(`${num} marked true in sheet`)
-                    successUpdates.push(num)
-
-                    // now update the unsold sx sheet
-                    let varUpdateUnsoldSx = updateUnsoldSx(rows[index], doc)
-                }
-            })
+            let iterate = await iterateRows(rows, orderNumbers, successUpdates, doc)
+           
             res.status(201).json({ success: true, data: successUpdates })
 
         } else {
