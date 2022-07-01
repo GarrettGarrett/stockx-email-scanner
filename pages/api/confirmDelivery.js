@@ -7,9 +7,9 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
             let num = orderNumbers[orderNumbers.indexOf(row['Order Number'])]
             let entireRow = rows[index]
             rows[index]['Delivery Confirmed'] = 'TRUE'
-            rows[index]['Calc Average']= `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(entireRow["Style ID"])}@${entireRow["Size"]}", "Calc Average")`,  
+            rows[index]['Calc Average']= `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(entireRow["Style ID"])}@${entireRow["Size"]}", "Calc Average")`
 
-            rows[index].save()
+            let saved = await rows[index].save()
             console.log(`${num} marked true in sheet`)
             successUpdates.push(num)
 
