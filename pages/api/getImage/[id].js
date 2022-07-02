@@ -43,8 +43,6 @@ export default async (req, res) => {
      
       let firstThumb = await getImageFromSx(id)
       res.status(200).json({ firstThumb })
-     
-      
     }
 }
 

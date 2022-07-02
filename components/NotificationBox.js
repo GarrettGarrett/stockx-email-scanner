@@ -5,7 +5,6 @@ import { CheckCircleIcon } from '@heroicons/react/outline'
 import { XIcon } from '@heroicons/react/solid'
 
 export default function Notification({show, setShow, res}) {
-console.log("🚀 ~ file: NotificationBox.js ~ line 8 ~ Notification ~ res", res)
 
   return (
     <>
