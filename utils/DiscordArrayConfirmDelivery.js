@@ -1,9 +1,5 @@
 export async function discordArrayConfirmDelivery(_fineParseArray, webhookUrl) {
 
-
-
-
-
     function hexToDecimal(hex) {
         return parseInt(hex.replace("#",""), 16)
     }
@@ -17,7 +13,7 @@ export async function discordArrayConfirmDelivery(_fineParseArray, webhookUrl) {
             thumbnail: { url: _fineParse["Image"] },
             title: _fineParse["Title"],
             description: `Style ID: ${_fineParse['Style ID']}\nOrder: ########-####${_fineParse['Order Number'].toString().substring(_fineParse['Order Number'].length - 4)}`,
-            color: hexToDecimal("#4B6FE4"),
+            color: hexToDecimal("#F1E54A"),
             timestamp: new Date()
         }
         console.log("🚀 ~ file: DiscordArrayConfirmDelivery.js ~ line 53 ~ discordArrayConfirmDelivery ~ myEmbed", myEmbed)
