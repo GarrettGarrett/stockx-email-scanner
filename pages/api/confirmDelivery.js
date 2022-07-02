@@ -1,6 +1,6 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet') // Google sheet npm package
 
-async function iterateRows(rows, orderNumbers, successUpdates, doc) {
+async function iterateRows(rows, orderNumbers, successUpdates, doc, completeRows) {
     rows.forEach(async (row, index) => {
     // for (var row of rows) {
         if (orderNumbers.includes(row['Order Number'])) {
@@ -13,9 +13,10 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc) {
             rows.save
             console.log(`${num} marked true in sheet`)
             successUpdates.push(num)
+            completeRows.push(rows[index])
 
-            // now update the unsold sx sheet
-            updateUnsoldSx(rows[index], doc)
+            // // now update the unsold sx sheet
+            // updateUnsoldSx(rows[index], doc)
         }
     })
     return "done"
@@ -67,7 +68,9 @@ async function updateUnsoldSx(entireRow, doc){
       },
   
   ])  
+  await new Promise(r => setTimeout(r, 1000));
   if (moreRows){
+      console.log("🚀 ~ file: confirmDelivery.js ~ line 72 ~ updateUnsoldSx ~ moreRows", moreRows)
       return moreRows
   }
   }
@@ -99,13 +102,45 @@ export default async (req, res) => {
             // Request Body Start --
             let successUpdates = []
             let orderNumbers = req.body.orderNumbers
-            let iterate = await iterateRows(rows, orderNumbers, successUpdates, doc)
+            let completeRows = []
+            let formatedCompleteRows = []
+            let iterate = await iterateRows(rows, orderNumbers, successUpdates, doc, completeRows)
             console.log("🚀 ~ file: confirmDelivery.js ~ line 98 ~ iterate", iterate)
 
             if (iterate){
-                await new Promise(r => setTimeout(r, 5000));
                 res.status(201).json({ success: true, data: successUpdates })
             }
+            completeRows.forEach(completeRow => {
+                formatedCompleteRows.push({ 
+                    "Style ID": completeRow["Style ID"], 
+                    "Size": completeRow["Size"], 
+                    "Title": completeRow["Title"], 
+                    "Condition": completeRow["Condition"], 
+                    "Calc Average": `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(completeRow["Style ID"])}@${completeRow["Size"]}", "Calc Average")`, 
+                    "Order Number": completeRow["Order Number"], 
+                    "Purchase Price": completeRow["Purchase Price"], 
+                    "Processing Fee": completeRow["Processing Fee"], 
+                    "Shipping": completeRow["Shipping"], 
+                    "Total Payment": completeRow["Total Payment"], 
+                    "hasConfirmedEmail": completeRow["hasConfirmedEmail"], 
+                    "hasDeliveredEmail": completeRow["hasDeliveredEmail"], 
+                    "Is Cancelled": completeRow["Is Cancelled"], 
+                    "Purchase Date": completeRow["Purchase Date"], 
+                    "Delivery Date": formatDateMMDDYYY(`${ completeRow["Delivery Date"]} ${year}`), 
+                    "Delivery Confirmed": completeRow["Delivery Confirmed"],    
+                    "Platform": completeRow["Platform"]
+                })
+            })
+
+            let unsoldGoat = doc.sheetsByTitle["Unsold SX"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+            var currentTime = new Date()
+            var year = currentTime.getFullYear()
+            console.log("🚀 ~ file: confirmDelivery.js ~ line 139 ~ formatedCompleteRows", formatedCompleteRows)
+            const moreRows = await unsoldGoat.addRows(formatedCompleteRows)
+
+            await new Promise(r => setTimeout(r, 3000));
+            res.status(200).json({ success: true, data: successUpdates })
+
            
 
         } else {
