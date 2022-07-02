@@ -182,7 +182,7 @@ export default async (req, res) => {
             unsoldGoat.saveCells
 
             let sendDiscordMe = await discordArrayConfirmDelivery(discordFormatArray, '975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C')
-            let sendDiscordHermes = await sendWebhookGoat(discordFormatArray, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
+            let sendDiscordHermes = await discordArrayConfirmDelivery(discordFormatArray, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")
 
 
             await new Promise(r => setTimeout(r, 4000));
