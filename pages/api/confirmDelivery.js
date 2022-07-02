@@ -107,9 +107,9 @@ export default async (req, res) => {
             let iterate = await iterateRows(rows, orderNumbers, successUpdates, doc, completeRows)
             console.log("🚀 ~ file: confirmDelivery.js ~ line 98 ~ iterate", iterate)
 
-            if (iterate){
-                res.status(201).json({ success: true, data: successUpdates })
-            }
+            // if (iterate){
+            //     res.status(201).json({ success: true, data: successUpdates })
+            // }
             completeRows.forEach(completeRow => {
                 formatedCompleteRows.push({ 
                     "Style ID": completeRow["Style ID"], 
@@ -137,8 +137,8 @@ export default async (req, res) => {
             var year = currentTime.getFullYear()
             console.log("🚀 ~ file: confirmDelivery.js ~ line 139 ~ formatedCompleteRows", formatedCompleteRows)
             const moreRows = await unsoldGoat.addRows(formatedCompleteRows)
-
-            await new Promise(r => setTimeout(r, 3000));
+            unsoldGoat.saveCells
+            await new Promise(r => setTimeout(r, 5000));
             res.status(200).json({ success: true, data: successUpdates })
 
            
