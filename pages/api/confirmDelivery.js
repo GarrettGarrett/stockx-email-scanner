@@ -62,7 +62,7 @@ async function updateUnsoldSx(entireRow, doc){
           "hasDeliveredEmail": entireRow["hasDeliveredEmail"], 
           "Is Cancelled": entireRow["Is Cancelled"], 
           "Purchase Date": entireRow["Purchase Date"], 
-          "Delivery Date": formatDateMMDDYYY(`${ entireRow["Delivery Date"]} ${year}`), 
+          "Delivery Date": entireRow["Delivery Date"], 
           "Delivery Confirmed": entireRow["Delivery Confirmed"],    
           "Platform": entireRow["Platform"]
       },
@@ -126,7 +126,7 @@ export default async (req, res) => {
                     "hasDeliveredEmail": completeRow["hasDeliveredEmail"], 
                     "Is Cancelled": completeRow["Is Cancelled"], 
                     "Purchase Date": completeRow["Purchase Date"], 
-                    "Delivery Date": formatDateMMDDYYY(`${ completeRow["Delivery Date"]} ${year}`), 
+                    "Delivery Date": completeRow["Delivery Date"], 
                     "Delivery Confirmed": completeRow["Delivery Confirmed"],    
                     "Platform": completeRow["Platform"]
                 })
