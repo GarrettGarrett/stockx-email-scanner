@@ -6,11 +6,21 @@ import { sendWebhook } from '../../utils/Discord';
 import {sendWebhookArrayGoat} from '../../utils/DiscordArrayGoat'
 import { sendWebhookGoat} from '../../utils/DiscordGoat'
 import { sendWebhookManyStockX } from '../../utils/DiscordArrayStockX'
+import {largeScaleParseAliasConsigned, fineParseAliasConsigned, formatDateMMDDYYY, formatDate, lookForMatchConsigned, sendWebhookAliasConsigned } from '../../utils/AliasConsigned'
+import {getImageSx, largeScaleParseStockXSoldItem2, lookForMatchStockXSold, sendWebhookStockXSold, largeScaleParseStockXVerification, fineParseStockXVerification, markIsVerifiedInSoldSheet, sendWebhookStockXVerified, largeScaleParseStockXSold, updatePayoutDateInSoldSheet, aioParseStockXCancelledSale} from '../../utils/StockX'
+import {getImageFromSx} from '../../utils/General'
+import {largeScaleParseAliasCompleted, markIsCompletedInSoldSheet, sendWebhookAliasCompleted} from '../../utils/AliasCompleted'
+import { lookForMatchAliasNonConsigned, sendWebhookAliasNonConsigned, fineParseAliasNonConsigned } from '../../utils/AliasSoldNonConsigned'
 
 // #######################################################
-let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
-let maxEmailsAtOnce = 7 //set the max number of emails to read on each api request. Helpful when limited timeout.
+let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
+let maxEmailsAtOnce = 4 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
+
+// Globals Start ------------------------
+const MY_WEBHOOK = '975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C'
+const HERMES_WEBHOOK = '975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2'
+// Globals End ------------------------
 
 
 const RESPONSES_SHEET_ID = '1gxQKq2KzFFirj-5aFaMLKBqgLA3d_8hhoEvAoKe8DCU'; // spreadsheet key is the long id in the sheets URL
@@ -40,16 +50,158 @@ const imapConfig = {
   }
 }
 
+async function sendWebhookStockXCancelled(_fineParseArray, webhookUrl) { 
+        
+  function hexToDecimal(hex) {
+      return parseInt(hex.replace("#",""), 16)
+  }
+
+  let allEmbeds = []
+  _fineParseArray.forEach(_fineParse => {
+      var myEmbed = {
+          author: {
+            name: "New StockX Email Detected",
+          },
+          // thumbnail: { url:  _fineParse.image},
+          title: _fineParse.title,
+          description: 
+              `Order: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nEmail Type: Sale Canceled`,
+             
+          color: hexToDecimal("#5B9D66"),
+          timestamp: new Date()
+      }
+
+      allEmbeds.push(myEmbed)
+    
+  })   
+
+  var myHeaders = new Headers();
+  myHeaders.append("authority", "discord.com");
+  myHeaders.append("accept", "*/*");
+  myHeaders.append("accept-language", "en-US,en;q=0.9");
+  myHeaders.append("content-type", "application/json");
+  myHeaders.append("origin", "https://dev.to");
+  myHeaders.append("referer", "https://dev.to/");
+  myHeaders.append("sec-ch-ua", "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"100\", \"Google Chrome\";v=\"100\"");
+  myHeaders.append("sec-ch-ua-mobile", "?0");
+  myHeaders.append("sec-ch-ua-platform", "\"macOS\"");
+  myHeaders.append("sec-fetch-dest", "empty");
+  myHeaders.append("sec-fetch-mode", "cors");
+  myHeaders.append("sec-fetch-site", "cross-site");
+
+    var raw = JSON.stringify({
+      username: "StockX Importer",
+      embeds: allEmbeds,
+      avatar_url: "https://i.imgur.com/fYrDHMk.png",
+  })
+  
+  var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+  };
+
+  var messageDiscord =  await fetch("https://discord.com/api/webhooks/" + webhookUrl, requestOptions)
+
+  console.log("🚀 ~ file: StockXSold.js ~ line 282 ~ sendWebhookStockXSold ~ messageDiscord.status", messageDiscord.status)
+
+  return messageDiscord.status
+}
+
+async function updateCanceledInSoldSheet(doc, _fineParseAliasComplete){
+  await doc.loadInfo();
+  let soldSheet = doc.sheetsByTitle["Sold"]
+  const rows = await soldSheet.getRows()
+
+  let justOrderNums = []
+  _fineParseAliasComplete?.forEach(item => {
+      justOrderNums.push(item["orderNumber"])
+  })
+
+  rows.forEach(async (row, index) => {
+      if (justOrderNums?.includes(row["Order Number"])){
+          console.log("found a match for StockX Cancelled Order ")
+          let indexNumber = justOrderNums?.indexOf(row["Order Number"])
+          let fullItem = _fineParseAliasComplete[indexNumber]
+          rows[index]["Date Cancelled"] = fullItem.date
+          rows[index]["Calc Average"] = rows[index]["Calc Average"].formula
+          rows[index].save()
+      }
+
+  })
+}
+
+async function sendWebhookStockXPayout(_fineParseArray, webhookUrl) { 
+        
+  function hexToDecimal(hex) {
+      return parseInt(hex.replace("#",""), 16)
+  }
+
+  let allEmbeds = []
+  _fineParseArray.forEach(_fineParse => {
+      var myEmbed = {
+          author: {
+            name: "New StockX Email Detected",
+          },
+          thumbnail: { url:  _fineParse.image},
+          title: _fineParse.title,
+          description: 
+              `Style ID: ${_fineParse.styleID}\nOrder: ########-####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 5)}\nSale Price: ${_fineParse.salePrice}\nTotal Payout: ${_fineParse.totalPayout}\nEmail Type:💸 Payout Sent`,
+             
+          color: hexToDecimal("#5B9D66"),
+          timestamp: new Date()
+      }
+
+      allEmbeds.push(myEmbed)
+    
+  })   
+
+  
+
+
+
+  var myHeaders = new Headers();
+  myHeaders.append("authority", "discord.com");
+  myHeaders.append("accept", "*/*");
+  myHeaders.append("accept-language", "en-US,en;q=0.9");
+  myHeaders.append("content-type", "application/json");
+  myHeaders.append("origin", "https://dev.to");
+  myHeaders.append("referer", "https://dev.to/");
+  myHeaders.append("sec-ch-ua", "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"100\", \"Google Chrome\";v=\"100\"");
+  myHeaders.append("sec-ch-ua-mobile", "?0");
+  myHeaders.append("sec-ch-ua-platform", "\"macOS\"");
+  myHeaders.append("sec-fetch-dest", "empty");
+  myHeaders.append("sec-fetch-mode", "cors");
+  myHeaders.append("sec-fetch-site", "cross-site");
+
+    var raw = JSON.stringify({
+      username: "StockX Importer",
+      embeds: allEmbeds,
+      avatar_url: "https://i.imgur.com/fYrDHMk.png",
+  })
+  
+  var requestOptions = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+      redirect: 'follow'
+  };
+
+  var messageDiscord =  await fetch("https://discord.com/api/webhooks/" + webhookUrl, requestOptions)
+
+  console.log("🚀 ~ file: StockXSold.js ~ line 282 ~ sendWebhookStockXSold ~ messageDiscord.status", messageDiscord.status)
+
+  return messageDiscord.status
+}
+
 function subtractHours(numOfHours, date) {
   date.setHours(date.getHours() - numOfHours);
   return date;
 }
 
 
-function formatDate(fineParseStockXString){
-  let edit1 = fineParseStockXString.split(" at ")
-  return edit1[0]
-}
+
 
 function oneMonthsAgo(){
     var d = new Date();
@@ -59,7 +211,7 @@ function oneMonthsAgo(){
 
 
 function cleanUpStyleId(string){
-console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
+// console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
   
   let parse1 = string.replaceAll("-", "")
   let parse2 = parse1.trim()
@@ -68,11 +220,55 @@ console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", strin
   return parse4
 }
 
-function formatDateMMDDYYY(_date){ //2010-10-11T00:00:00+05:30
-  let date = new Date(_date)
-  let returnDate =  (((date.getMonth() > 8) ? (date.getMonth() + 1) : ('' + (date.getMonth() + 1))) + '/' + ((date.getDate() > 9) ? date.getDate() : ('' + date.getDate())) + '/' + date.getFullYear())
-  console.log("🚀 ~ file: emailV2.js ~ line 114 ~ formatDateMMDDYYY ~ returnDate", returnDate)
-  return returnDate
+
+function fineParseStockXSoldItem2(rawDetails, subject) { // only continue if confirmation or delivery or refund email:
+  let fineDetails = {}
+  try {
+    fineDetails["styleID"] = rawDetails['styleID'].substring(rawDetails.styleID.indexOf(":") + 2, rawDetails.styleID.length)  
+  } catch {
+    fineDetails["styleID"] = "None"//shoes have style id, but basketball for example wont.
+  }
+  fineDetails.website = "StockX"
+  try {
+    fineDetails["size"] = rawDetails['size'].substring(rawDetails.size.indexOf(":") + 2, rawDetails.size.length)  
+  } catch {
+    fineDetails["size"] = "None" 
+
+  }
+  fineDetails["title"] = subject.substring(subject.indexOf("!") + 2, subject.length)
+  fineDetails['isSold'] = true
+  fineDetails["condition"] = rawDetails['condition']?.substring(rawDetails.condition.indexOf(":") + 2, rawDetails.condition.length)  
+  fineDetails["orderNumber"] = rawDetails['orderNumber']?.substring(rawDetails.orderNumber.indexOf(":") + 2, rawDetails.orderNumber.length)  
+  fineDetails["salePrice"] = rawDetails['salePrice']?.substring(rawDetails.salePrice.indexOf(": ") + 2, rawDetails.salePrice.length)  
+  fineDetails["transactionFee"] = rawDetails['transactionFee']?.substring(rawDetails.transactionFee.indexOf(": ") + 2, rawDetails.transactionFee.length)  
+  fineDetails["paymentProc"] = rawDetails['paymentProc']?.substring(rawDetails.paymentProc.indexOf(": ") + 2, rawDetails.paymentProc.length)  
+  fineDetails["shipping"] = rawDetails['shipping']?.substring(rawDetails.shipping.indexOf(": ") + 2, rawDetails.shipping.length)  
+  fineDetails["totalPayout"] = rawDetails['totalPayout']?.substring(rawDetails.totalPayout?.indexOf("$") + 0, rawDetails.totalPayout.length - 0)
+  fineDetails["Calc Average"] = `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(fineDetails["styleID"])}@${fineDetails["size"]}", "Calc Average")`
+  console.log("🚀 ~ file: emailV2.js ~ line 345 ~ fineParseStockX ~ fineDetails", fineDetails)
+
+
+  
+  if (rawDetails.dateRetrievedFromStamp){
+    fineDetails["date"] = formatDateMMDDYYY (formatDate(rawDetails.date) )
+  } else { //retrieved date from body 
+    fineDetails["date"] = formatDateMMDDYYY( formatDate(rawDetails['date'].substring(rawDetails.date.indexOf(": ") + 2, rawDetails.date.length )  ) )
+  }
+  
+  if (rawDetails.subject.includes("Confirmed")){
+      fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Confirmed:") + 11, rawDetails.subject.length)  
+      fineDetails['hasConfirmedEmail'] = true
+  }
+  if (rawDetails.subject.includes("Delivered")){
+      fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Delivered:") + 11, rawDetails.subject.length)  
+      fineDetails['hasDeliveredEmail'] = true
+      fineDetails['hasConfirmedEmail'] = true
+  }
+  if (rawDetails.subject.includes("Refund")){
+    fineDetails["title"] = rawDetails['subject'].substring(rawDetails.subject.indexOf("Refund Issued:") + 15, rawDetails.subject.length)  
+    fineDetails['isRefund'] = true
+}
+  return fineDetails
 }
 
 function goatParseHTML(html){ //style id and title goatParse = {styleID: '', title: '', size: ''}
@@ -846,6 +1042,56 @@ function getImageFromStockX(html){
   return res
 }
 
+function largeScaleParseStockXPayout(_string, subject, date){
+  const splitByLine = _string.split(/\r?\n/)
+  console.log("🚀 ~ file: StockX.js ~ line 108 ~ largeScaleParseStockXSoldItem2 ~ splitByLine", splitByLine)
+  let rawDetails = {}
+  splitByLine.forEach((line, index) => {
+      if (line.includes("Style ID:")){
+          rawDetails["styleID"] = line
+      }
+      if (line.includes("Size:")){
+          rawDetails["size"] = line
+      }
+      if (line.includes("Condition:")){
+          rawDetails["condition"] = line
+      }
+      if (line.includes("Order number")){
+          rawDetails["orderNumber"] = line
+      }
+      if (line.includes("Sale Price:")){
+          rawDetails["salePrice"] = line
+      }
+      if (line.includes("Transaction Fee:")){
+          rawDetails["transactionFee"] = line
+      }
+      if (line.includes("Payment Proc.")){
+          rawDetails["paymentProc"] = line
+      }
+      if (line.includes("Shipping:")){
+          rawDetails["shipping"] = line
+      }
+      if (line.toLowerCase().includes("payout")){
+          rawDetails["totalPayout"] = line
+      }
+      rawDetails["title"] = subject.substring(subject.indexOf("Payout Sent:") + 13, subject.length)
+      
+      // if (line.includes("Ready For Authentication")){
+      //     rawDetails["title"] = splitByLine[index + 1]
+      // }
+      
+      rawDetails['subject'] = subject
+  
+      if (line.includes("Date:")){
+          rawDetails["date"] = line
+      } else { //cannot parse date, meaning it was an auto forward, and date is from parsed.date
+          rawDetails["date"] = date.toString()
+          rawDetails["dateRetrievedFromStamp"] = true
+      }
+  })
+  return rawDetails
+  }
+
 export default async (req, res) => {
   
     if (req.method === 'GET') {
@@ -882,6 +1128,61 @@ export default async (req, res) => {
                             }
                           }
 
+                          if (parsed?.text?.includes("StockX") && (parsed?.subject?.includes("Canceled"))) {
+                              console.log("Found a StockX Email: Sale Canceled")
+                              let aioParse = aioParseStockXCancelledSale(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                              console.log("🚀 ~ file: emailV2.js ~ line 1048 ~ simpleParser ~ aioParse", aioParse)
+
+                              if (aioParse?.orderNumber) {//ignore 'unknowns'
+                                aioParseList.push(aioParse)
+                              }
+                          }
+
+                          if (parsed?.text?.includes("StockX") && (parsed?.subject?.includes("Payout Sent"))){ //stockx payout sent
+                            console.log("Found a StockX Email: Payout Sent")
+                            let _largeScaleParsePayoutSent = largeScaleParseStockXPayout(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                            console.log("🚀 ~ file: emailV2.js ~ line 939 ~ simpleParser ~ _largeScaleParsePayoutSent", _largeScaleParsePayoutSent)
+
+                            let _fineParseStockXPayout = fineParseStockXVerification(_largeScaleParsePayoutSent, parsed?.subject)
+                            console.log("🚀 ~ file: emailV2.js ~ line 992 ~ simpleParser ~ _fineParseStockXPayout", _fineParseStockXPayout)
+
+                            if (_fineParseStockXPayout?.orderNumber) {//ignore 'unknowns'
+                              _fineParseStockXPayout.image = getImageFromStockX(parsed.html) //get image from email html
+                              _fineParseStockXPayoutList.push(_fineParseStockXPayout)
+                            }
+
+                          }
+
+                          if (parsed?.text?.includes("StockX") && (parsed?.subject?.includes("Item Arrived For Verification"))){ //Stockx verification email
+                              console.log("Found a StockX email: an item you are selling arrived at SX for verifiction.")
+
+                              let _largeScaleParseStockXVerificationArrived = largeScaleParseStockXVerification(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                              console.log("🚀 ~ file: emailV2.js ~ line 940 ~ simpleParser ~ _largeScaleParseStockXVerificationArrived", _largeScaleParseStockXVerificationArrived)
+                              
+                              let _fineScaleParseStockXVerificationArrived = fineParseStockXVerification(_largeScaleParseStockXVerificationArrived, parsed?.subject)
+                              console.log("🚀 ~ file: emailV2.js ~ line 943 ~ simpleParser ~ _fineScaleParseStockXVerificationArrived", _fineScaleParseStockXVerificationArrived)
+
+                              if (_fineScaleParseStockXVerificationArrived?.orderNumber) {//ignore 'unknowns'
+                                _fineScaleParseStockXVerificationArrived.image = getImageFromStockX(parsed.html) //get image from email html
+                                _fineScaleParseStockXVerificationArrivedList.push(_fineScaleParseStockXVerificationArrived)
+                              }
+                          }
+
+                          if (parsed?.text?.includes("StockX") && (parsed?.subject?.includes("You Sold Your Item"))){ //SX Sold Item
+                              console.log("Found a StockX Sold Item Email...")
+                              let _largeScaleParseStockXSoldItem = largeScaleParseStockXSold(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                              console.log("🚀 ~ file: emailV2.js ~ line 889 ~ simpleParser ~ _largeScaleParseStockXSoldItem", _largeScaleParseStockXSoldItem)
+
+                              let _fineParseStockXSoldItem = fineParseStockXSoldItem2(_largeScaleParseStockXSoldItem, parsed?.subject)
+                              console.log("🚀 ~ file: emailV2.js ~ line 892 ~ simpleParser ~ _fineParseStockXSoldItem", _fineParseStockXSoldItem)
+
+                              if (_fineParseStockXSoldItem?.orderNumber) {//ignore 'unknowns'
+                                _fineParseStockXSoldItem.image = getImageFromStockX(parsed.html) //get image from email html
+                                _fineParseStockXSoldItemList.push(_fineParseStockXSoldItem)
+                              }
+
+                          }
+
                           if (parsed?.text?.includes("StockX")) { //handle StockX emails here
                               console.log("found a stockX email...", parsed.subject, subtractHours(4, parsed.date)) //4 hours because udt time.  client wants est time.
                               let _largeScaleParseStockX = largeScaleParseStockX(parsed.text, parsed.subject, subtractHours(4, parsed.date))
@@ -893,6 +1194,49 @@ export default async (req, res) => {
                               console.log("🚀 ~ file: emailV2.js ~ line 196 ~ simpleParser ~ _fineParseStockXList", _fineParseStockXList)
                           } 
 
+                          if (parsed?.text?.includes("alias") && parsed?.text?.includes("consigned")){ //handle alias consigned here
+                            console.log("found an alias consigned email....")
+                            let _largeScaleParseAliasConsigned = await largeScaleParseAliasConsigned(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                            console.log("🚀 ~ file: emailV2.js ~ line 900 ~ simpleParser ~ _largeScaleParseAliasConsigned", _largeScaleParseAliasConsigned)
+
+                            let _fineParseAliasConsigned = fineParseAliasConsigned(_largeScaleParseAliasConsigned)
+                            console.log("🚀 ~ file: emailV2.js ~ line 893 ~ simpleParser ~ _fineParseAliasConsigned", _fineParseAliasConsigned)
+
+                            if (_fineParseAliasConsigned?.orderNumber){ //ignore 'unknowns'
+                              _fineParseAliasConsigned.image = await getImageFromSx(_fineParseAliasConsigned.styleID) 
+                              _fineParseAliasConsignedList.push(_fineParseAliasConsigned)
+                            }
+                        }
+
+
+                        if (parsed?.text?.includes("alias") && parsed?.subject?.includes("Sold") && parsed?.subject?.indexOf('consigned') === -1){ //handle alias non consigned here
+                          console.log("found an alias non-consigned email....")
+
+                          let _largeScalePArsedAliasNonConsigned = await largeScaleParseAliasConsigned(parsed.text, parsed.subject, subtractHours(4, parsed.date))
+                          console.log("🚀 ~ file: emailV2.js ~ line 914 ~ simpleParser ~ _largeScalePArsedAliasNonConsigned", _largeScalePArsedAliasNonConsigned)
+                          // lookForMatchAliasNonConsigned
+
+                          let _fineParseAliasNonConsigned = fineParseAliasNonConsigned(_largeScalePArsedAliasNonConsigned)
+                          console.log("🚀 ~ file: emailV2.js ~ line 919 ~ simpleParser ~ _fineParseAliasNonConsigned", _fineParseAliasNonConsigned)
+
+                          if (_fineParseAliasNonConsigned?.orderNumber){ //ignore 'unknowns'
+                            _fineParseAliasNonConsigned.image = await getImageFromSx(_fineParseAliasNonConsigned.styleID) 
+                            _fineParseAliasNonConsignedList.push(_fineParseAliasNonConsigned)
+                          }
+
+                        }
+
+                          if (parsed?.text?.includes("alias") && parsed?.subject?.includes("Completed")) {//handle completed Alias emails (consigned and not).  Currently only looking for order number matches within the SALES sheet.
+                            console.log("found an alias completed email....")
+                            let _largeScaleParseAliasCompleted = await largeScaleParseAliasCompleted(parsed.subject, subtractHours(4, parsed.date))
+                            console.log("🚀 ~ file: emailV2.js ~ line 913 ~ simpleParser ~ _largeScaleParseAliasCompleted", _largeScaleParseAliasCompleted)
+                            
+                            // no fineparse needed here
+                            if (_largeScaleParseAliasCompleted?.orderNumber){ //ignore 'unknowns'
+                              _fineParseAliasComplete.push(_largeScaleParseAliasCompleted)
+                            }
+                          
+                          }
                           /* Make API call to save the data
                              Save the retrieved data into a database.
                              E.t.c
@@ -935,25 +1279,115 @@ export default async (req, res) => {
               console.log(ex);
             }
           };
-
+          // WIP*
           let _fineParseStockXList = [] // all StockX objects that will need to be added to Sheets
           let _fineParseGoatList = [] // all GOAT objects that will need to be added to Sheets
+          let _fineParseAliasConsignedList = [] //Alias consigned
+          let _fineParseAliasComplete = [] //Alias complete
+          let _fineParseAliasNonConsignedList = []
+          let _fineParseStockXSoldItemList = []
+          let _fineScaleParseStockXVerificationArrivedList = []
+          let _fineParseStockXPayoutList = []
+          let aioParseList = []//cancelled stockx
           let connectionEnded = false
           const emails = await getEmails()
           while (!connectionEnded) {
             await new Promise(r => setTimeout(r, 1000));
           }
+
+
+
           if (connectionEnded) {
-            // UPDATE SHEET
+            // UPDATE SHEET start ------------------------------
             if (_fineParseStockXList?.length > 0) {
               let sheetUpdateStockX = await updateSheets(_fineParseStockXList, "StockX")
               console.log("🚀 ~ file: emailV2.js ~ line 352 ~ _fineParseStockXList", _fineParseStockXList)
+              // discord sent far down
+            }
+
+            if (_fineParseStockXSoldItemList?.length > 0) {
+                // look in unsold sx for the same styleId + size
+                // if match, then mark the item sold and create new entry in sold sheet using unsold row + sold email dets
+                // if no match, create a new entry in sold sheet using only email dets
+                // send discord webhook.
+                let lookForMatchesAndUpdateSheetStockXSold = await lookForMatchStockXSold(doc, _fineParseStockXSoldItemList)
+
+                let sendDiscordStockXSoldMe = await sendWebhookStockXSold(_fineParseStockXSoldItemList, MY_WEBHOOK)
+                if (!testmode){
+                  let sendDiscordHermes = await sendWebhookStockXSold(_fineParseStockXSoldItemList, HERMES_WEBHOOK)
+                }
             }
             
             if (_fineParseGoatList?.length > 0) {
               let sheetUpdateGoat = await updateSheets(_fineParseGoatList, "Goat")
               console.log("🚀 ~ file: emailV2.js ~ line 500 ~ sheetUpdateGoat", sheetUpdateGoat)
+              // discord sent far down
             }
+
+            if (_fineParseAliasConsignedList?.length > 0) {
+              // try to find a match in unsold consigned, if no match then add to sold sheet with email dets.  If match then add to sold sheet with unsold consigned row dets + email dets
+              let lookForMatchesAndUpdateSheet = await lookForMatchConsigned(doc, _fineParseAliasConsignedList) 
+              // send discord webhook
+              let sendDiscordMe = await sendWebhookAliasConsigned(_fineParseAliasConsignedList, MY_WEBHOOK)
+              if (!testmode){
+                let sendDiscordHermes = await sendWebhookAliasConsigned(_fineParseAliasConsignedList, HERMES_WEBHOOK)
+              }
+            }
+
+            if (_fineParseAliasNonConsignedList?.length > 0) {//Alias Non consigned 
+              let lookForMatchesAndUpdateSheet = await lookForMatchAliasNonConsigned(doc, _fineParseAliasNonConsignedList) 
+              // send discord webhook
+              let sendDiscordMe = await sendWebhookAliasNonConsigned(_fineParseAliasNonConsignedList, MY_WEBHOOK)
+              if (!testmode){
+                let sendDiscordHermes = await sendWebhookAliasNonConsigned(_fineParseAliasNonConsignedList, HERMES_WEBHOOK)
+              }
+            }
+
+            if (_fineParseAliasComplete?.length > 0) {
+              // mark is completed true for that order # in sold sheet.
+              let _markIsCompletedInSoldSheet = await markIsCompletedInSoldSheet(doc, _fineParseAliasComplete)
+              // send discord webhook
+              let sendDiscordMe = await sendWebhookAliasCompleted(_fineParseAliasComplete, MY_WEBHOOK)
+              if (!testmode) {
+                  let sendDiscordHermes = await sendWebhookAliasCompleted(_fineParseAliasComplete, HERMES_WEBHOOK)
+              }
+            }
+
+            if (_fineScaleParseStockXVerificationArrivedList?.length > 0) {
+              // mark is verified true for that order # in the sold sheet
+              // send discord webhook
+              let _markIsVerifiedInSoldSheet = await markIsVerifiedInSoldSheet(doc, _fineScaleParseStockXVerificationArrivedList)
+
+              let sendDiscordMe = await sendWebhookStockXVerified(_fineScaleParseStockXVerificationArrivedList, MY_WEBHOOK)
+              if (!testmode){
+                  let sendDiscordHermes = await sendWebhookStockXVerified(_fineScaleParseStockXVerificationArrivedList, HERMES_WEBHOOK)
+              }
+            }
+
+            if (_fineParseStockXPayoutList?.length > 0) {
+              // if order# match in sold sheet, update payout date
+              // send discord webhook
+              let _updatePayoutDateInSoldSheet = await updatePayoutDateInSoldSheet(doc, _fineParseStockXPayoutList)
+              let sendDiscordMe = await sendWebhookStockXPayout(_fineParseStockXPayoutList, MY_WEBHOOK)
+              if (!testmode){
+                  let sendDiscordHermes = await sendWebhookStockXPayout(_fineParseStockXPayoutList, HERMES_WEBHOOK)
+              }
+            }
+
+            if (aioParseList?.length > 0) {
+              // if order# match in sold sheet, update is canceled to true
+              // send discord webhook. no image on this one.
+              let _updateCanceledInSoldSheet = await updateCanceledInSoldSheet(doc, aioParseList)
+              let sendDiscordMe = await sendWebhookStockXCancelled(aioParseList, MY_WEBHOOK)
+              if (!testmode) {
+                  let sendDiscordHermes = await sendWebhookStockXCancelled(aioParseList, HERMES_WEBHOOK)
+              }
+            }
+            // UPDATE SHEET end ------------------------------
+
+
+
+
             
             var endTime = performance.now()
 

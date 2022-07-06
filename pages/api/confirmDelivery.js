@@ -58,7 +58,7 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc, completeRows
 
 
 function cleanUpStyleId(string){
-    console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
+    // console.log("🚀 ~ file: emailV2.js ~ line 62 ~ cleanUpStyleId ~ string", string)
       
       let parse1 = string.replaceAll("-", "")
       let parse2 = parse1.trim()
@@ -112,10 +112,8 @@ async function updateUnsoldSx(entireRow, doc){
 export default async (req, res) => {
    
     if (req.method === 'POST') {
-        console.log(req.body)
         if (req.body.orderNumbers.length > 0) {
-
-            // Google Doc Initiate Start --
+            // Google Doc Initiate Start --------------------------------
             const RESPONSES_SHEET_ID = '1gxQKq2KzFFirj-5aFaMLKBqgLA3d_8hhoEvAoKe8DCU'; // spreadsheet key is the long id in the sheets URL
             const doc = new GoogleSpreadsheet(RESPONSES_SHEET_ID); // const RESPONSES_SHEET_ID = '19lo-6eEXYmu_gw5FgyeVZJ9DoJblPQTVbVorSL1Ppus';
 
@@ -131,9 +129,9 @@ export default async (req, res) => {
             await doc.loadInfo();
             let importerStockX = doc.sheetsByTitle["Importer - SX"]; //stockx importer tab
             const rows = await importerStockX.getRows()
-            // Google Doc Initiate End --
+            // Google Doc Initiate End ---------------------------
 
-            // Request Body Start --
+            // Request Body Start ----------------------------------------------
             let successUpdates = []
             let orderNumbers = req.body.orderNumbers
             let completeRows = []
