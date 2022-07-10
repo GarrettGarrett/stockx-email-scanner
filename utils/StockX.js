@@ -171,7 +171,7 @@ export function largeScaleParseStockXSold(_string, subject, date){
         if (line.includes("Sale Price:")){
             rawDetails["salePrice"] = line
         }
-        if (line.includes("Transaction Fee:")){
+        if (line.includes("Transaction Fee")){
             rawDetails["transactionFee"] = line
         }
         if (line.includes("Payment Proc.")){
