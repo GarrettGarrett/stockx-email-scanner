@@ -209,7 +209,7 @@ export async function lookForMatchConsigned(doc, _fineParseAliasConsignedList){
                     "Date Sold": item.date,
                     "Is Sold": "TRUE",
                     "Calc Average": `=HYPERLINK("https://stockx-email-scanner.vercel.app/average/${cleanUpStyleId(item["styleID"])}@${item["size"]}", "Calc Average")`,
-                    "Amount Received": ((Number(item.amountMade)) * .971).toFixed(2),
+                    "Amount Received": ((Number(item.amountMade))),
                 })
         })
         const bulkRowsConsigned = await soldSheet.addRows(rowsToAddUnsoldConsigned)
@@ -240,7 +240,7 @@ console.log("🚀 ~ file: AliasConsigned.js ~ line 226 ~ sendWebhookAliasConsign
             thumbnail: { url:  _fineParse.image},
             title: _fineParse.title,
             description: 
-                `Style ID: ${_fineParse.styleID}\nOrder: #####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 4)}\nAmount Made (-2.9%): $${(Number(_fineParse.amountMade)* .971).toFixed(2)}\nEmail Type: Alias Consigned Sold`,
+                `Style ID: ${_fineParse.styleID}\nOrder: #####${_fineParse.orderNumber.toString().substring(_fineParse.orderNumber.length - 4)}\nAmount Made (-2.9%): $${(Number(_fineParse.amountMade))}\nEmail Type: Alias Consigned Sold`,
                
             color: hexToDecimal("#5C65ED"),
             timestamp: new Date()

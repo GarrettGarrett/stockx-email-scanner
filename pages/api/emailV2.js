@@ -13,7 +13,7 @@ import {largeScaleParseAliasCompleted, markIsCompletedInSoldSheet, sendWebhookAl
 import { lookForMatchAliasNonConsigned, sendWebhookAliasNonConsigned, fineParseAliasNonConsigned } from '../../utils/AliasSoldNonConsigned'
 
 // #######################################################
-let testmode = false //when true= only i get discord hooks.  when false, hermes gets too
+let testmode = true //when true= only i get discord hooks.  when false, hermes gets too
 let maxEmailsAtOnce = 4 //set the max number of emails to read on each api request. Helpful when limited timeout.
 // #######################################################
 
