@@ -575,7 +575,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
   await doc.loadInfo();
   let importerStockX = doc.sheetsByTitle["Importer - SX"]; //stockx importer tab
   let importerGoat = doc.sheetsByTitle["Importer - GOAT"] //goat importer tab
-  let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+  let unsoldInHouse = doc.sheetsByTitle["Unsold In House"] 
   
   let sheet
   if (website == "StockX") {
@@ -596,13 +596,13 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
 
   console.log("🚀 ~ file: emailV2.js ~ line 134 ~  ~ justOrderNumbers", justOrderNumbers)
 
-  async function updateUnsoldGoatRow(entireRow, _unsoldGoat, index){
-    console.log("UPDATING UNSOLD GOAT <-----------------------------------------")
-    let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+  async function updateunsoldInHouseRow(entireRow, _unsoldInHouse, index){
+    console.log("UPDATING Unsold In House <-----------------------------------------")
+    let unsoldInHouse = doc.sheetsByTitle["Unsold In House"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
 
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    const moreRows = await unsoldGoat.addRows([
+    const moreRows = await unsoldInHouse.addRows([
       { 
           "Style ID": entireRow["Style ID"], 
           "Size": entireRow["Size"], 
@@ -623,7 +623,7 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
       },
   
   ])  
-    console.log("🚀 ~ file: emailV2.js ~ line 408 ~ updateUnsoldGoatRow ~ moreRows", moreRows)
+    console.log("🚀 ~ file: emailV2.js ~ line 408 ~ updateunsoldInHouseRow ~ moreRows", moreRows)
   }
 
 
@@ -646,8 +646,8 @@ async function updateSheets(_fineParseArray, website) { //_fineParseStockXArray 
                   console.log("Goat Sheet Updated")
                   deliveredEmailMatched = true
 
-                  // Because it's a storage email, and this order exists in importer sheet, it needs to be added to unsold Goat tab.
-                  updateUnsoldGoatRow(entireRow, unsoldGoat, index)
+                  // Because it's a storage email, and this order exists in importer sheet, it needs to be added to Unsold In House tab.
+                  updateunsoldInHouseRow(entireRow, unsoldInHouse, index)
                   // testUpdateSheet()
                   console.log("Goat Unsold Sheet Updated")
               }

@@ -49,7 +49,7 @@ async function iterateRows(rows, orderNumbers, successUpdates, doc, completeRows
             successUpdates.push(num)
             completeRows.push(rows[index])
 
-            // // now update the unsold sx sheet
+            // // now update the Unsold In House sheet
             // updateUnsoldSx(rows[index], doc)
         }
     })
@@ -76,11 +76,11 @@ function formatDateMMDDYYY(_date){ //2010-10-11T00:00:00+05:30
 
 
 async function updateUnsoldSx(entireRow, doc){
-    let unsoldGoat = doc.sheetsByTitle["Unsold SX"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+    let unsoldInHouse = doc.sheetsByTitle["Unsold In House"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
 
     var currentTime = new Date()
     var year = currentTime.getFullYear()
-    const moreRows = await unsoldGoat.addRows([
+    const moreRows = await unsoldInHouse.addRows([
       { 
           "Style ID": entireRow["Style ID"], 
           "Size": entireRow["Size"], 
@@ -172,12 +172,12 @@ export default async (req, res) => {
             })
             
 
-            let unsoldGoat = doc.sheetsByTitle["Unsold SX"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
+            let unsoldInHouse = doc.sheetsByTitle["Unsold In House"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
             var currentTime = new Date()
             var year = currentTime.getFullYear()
             console.log("🚀 ~ file: confirmDelivery.js ~ line 139 ~ formatedCompleteRows", formatedCompleteRows)
-            const moreRows = await unsoldGoat.addRows(formatedCompleteRows)
-            unsoldGoat.saveCells
+            const moreRows = await unsoldInHouse.addRows(formatedCompleteRows)
+            unsoldInHouse.saveCells
 
             let sendDiscordMe = await discordArrayConfirmDelivery(discordFormatArray, '975581477121175592/hyEOkvLhyb5HUBbH_XiPXnNi7jL8ybCxuVRXpfie6UVlcAp4bmEsCp7wGNDpRrkJ5-1C')
             let sendDiscordHermes = await discordArrayConfirmDelivery(discordFormatArray, "975584745754878042/nHrt5qw_bY4qlD0KPm8r6g3-3TkDP74f3fNcP0PZTYcjRpuAzR2vJDseaUPTQDbSGcB2")

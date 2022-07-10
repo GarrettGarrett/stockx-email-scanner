@@ -104,7 +104,7 @@ export  function fineParseAliasNonConsigned(rawDetails) {
 
 export async function lookForMatchAliasNonConsigned(doc, _fineParseAliasConsignedList){
     await doc.loadInfo();
-    let unsoldConsigned = doc.sheetsByTitle["Unsold GOAT"]
+    let unsoldConsigned = doc.sheetsByTitle["Unsold In House"]
     let soldSheet = doc.sheetsByTitle["Sold"]
     const rows = await unsoldConsigned.getRows()
     const rowsSold = await soldSheet.getRows()
@@ -123,7 +123,7 @@ export async function lookForMatchAliasNonConsigned(doc, _fineParseAliasConsigne
         let cleanStyleIdSheet = cleanUpStyleId(row['Style ID'])
         let cleanSizeSheet = cleanUpSize(row['Size'])
         if (_fineParseAliasNonConsignedList_CLEAN_styleId_Size?.includes(cleanStyleIdSheet+cleanSizeSheet)){
-            console.log("Alias Non Consigned Email StyleId + Size matches Unsold GOAT entry at row: ", index)
+            console.log("Alias Non Consigned Email StyleId + Size matches Unsold In House entry at row: ", index)
             let indexItem = _fineParseAliasNonConsignedList_CLEAN_styleId_Size?.indexOf(cleanStyleIdSheet+cleanSizeSheet)
             let fullItem = _fineParseAliasConsignedList[indexItem]
             let entireRow = rows[index]

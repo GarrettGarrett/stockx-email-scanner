@@ -302,7 +302,7 @@ export function largeScaleParseStockXSold(_string, subject, date){
         }
         if (wereThereAnyMatches) {
             const bulkRows = await soldSheet.addRows(rowsToAddToSales)
-            console.log("Match found, sold entry added based on values in unsold SX")
+            console.log("Match found, sold entry added based on values in unsold in house")
         }
     }
 

@@ -23,34 +23,47 @@ async function readSheets(styleIdsize){
     // combine styleID + size for all entries. make that the key.  Make the value total price.
     // step 1 - read style id and size column
     await doc.loadInfo();
-    let unsoldSX = doc.sheetsByTitle["Unsold SX"]; //stockx importer tab
-    let unsoldGoat = doc.sheetsByTitle["Unsold GOAT"] //goat importer tab
+    // let unsoldSX = doc.sheetsByTitle["Unsold SX"]; //stockx importer tab
+    // let unsoldGoat = doc.sheetsByTitle["Unsold In House"] //goat importer tab
+    let unsoldInHouse = doc.sheetsByTitle["Unsold In House"]
     let unsoldConsigned = doc.sheetsByTitle["Unsold Consigned"] //goat unsold tab - used only for GOAT, when shoe is stored - can be written into unsold tab.
 
 
-    const rowsSX = await unsoldSX.getRows()
-    const rowsGoat = await unsoldGoat.getRows()
+    // const rowsSX = await unsoldSX.getRows()
+    // const rowsGoat = await unsoldGoat.getRows()
+    const unsoldInHouseRows = await unsoldInHouse.getRows()
     const rowsConsigned = await unsoldConsigned.getRows()
 
     let returnObject = []
     let sxRaw = []
     let goatRaw = []
+    let unsoldInHouseRaw = []
     let consignedRaw = []
 
-    rowsSX.forEach((row, index) => {
-        let data = {}
+    unsoldInHouseRows.forEach((row, index) => {
+      let data = {}
         data.styleId = row['Style ID']
         data.size = row['Size']
         data.total = row['Total Payment']
-        sxRaw.push(data)
+        data.total = row['Sub Total']
+        unsoldInHouseRaw.push(data)
     })
-    rowsGoat.forEach((row, index) => {
-      let data = {}
-      data.styleId = row['Style ID']
-      data.size = row['Size']
-      data.total = row['Sub Total']
-      goatRaw.push(data)
-  })
+
+    // rowsSX.forEach((row, index) => {
+    //     let data = {}
+    //     data.styleId = row['Style ID']
+    //     data.size = row['Size']
+    //     data.total = row['Total Payment']
+    //     data.total = row['Sub Total']
+    //     sxRaw.push(data)
+    // })
+//     rowsGoat.forEach((row, index) => {
+//       let data = {}
+//       data.styleId = row['Style ID']
+//       data.size = row['Size']
+//       data.total = row['Sub Total']
+//       goatRaw.push(data)
+//   })
   rowsConsigned.forEach((row, index) => {
     let data = {}
     data.styleId = row['Style ID']
@@ -59,38 +72,49 @@ async function readSheets(styleIdsize){
     consignedRaw.push(data)
 })
 
-    returnObject.push({"SX":sxRaw})
-    returnObject.push({"Goat":goatRaw})
+    // returnObject.push({"SX":sxRaw})
+    // returnObject.push({"Goat":goatRaw})
+    returnObject.push({"inHouse":unsoldInHouseRaw})
     returnObject.push({"Consigned":consignedRaw})
     return returnObject
 }
 
 function findMatch(id, allSheetData){
-    let sxValues = allSheetData[0]['SX']
-    let goatValues = allSheetData[1]['Goat']
-    let consignedValues = allSheetData[2]['Consigned']
+    // let sxValues = allSheetData[0]['SX']
+    // let goatValues = allSheetData[1]['Goat']
+    let inHouseValues = allSheetData[0]['inHouse']
+    let consignedValues = allSheetData[1]['Consigned']
 
     let matches = []
     
-    sxValues.forEach(obj => {
-      let styleId = obj.styleId
-      let size = obj.size
-      let cleanStyleId = cleanUpStyleId(styleId)
-      let cleanSize = cleanUpSize(size)
-      if (cleanStyleId + cleanSize == id){
-        matches.push(obj)
-      }
-    })
-    goatValues.forEach(obj => {
-      let styleId = obj.styleId
-      let size = obj.size
-      let cleanStyleId = cleanUpStyleId(styleId)
-      let cleanSize = cleanUpSize(size)
-      if (cleanStyleId + cleanSize == id){
-        matches.push(obj)
-      }
-    })
+    // sxValues.forEach(obj => {
+    //   let styleId = obj.styleId
+    //   let size = obj.size
+    //   let cleanStyleId = cleanUpStyleId(styleId)
+    //   let cleanSize = cleanUpSize(size)
+    //   if (cleanStyleId + cleanSize == id){
+    //     matches.push(obj)
+    //   }
+    // })
+    // goatValues.forEach(obj => {
+    //   let styleId = obj.styleId
+    //   let size = obj.size
+    //   let cleanStyleId = cleanUpStyleId(styleId)
+    //   let cleanSize = cleanUpSize(size)
+    //   if (cleanStyleId + cleanSize == id){
+    //     matches.push(obj)
+    //   }
+    // })
     consignedValues.forEach(obj => {
+      let styleId = obj.styleId
+      let size = obj.size
+      let cleanStyleId = cleanUpStyleId(styleId)
+      let cleanSize = cleanUpSize(size)
+      if (cleanStyleId + cleanSize == id){
+        matches.push(obj)
+      }
+    })
+    inHouseValues.forEach(obj => {
       let styleId = obj.styleId
       let size = obj.size
       let cleanStyleId = cleanUpStyleId(styleId)

@@ -25,7 +25,7 @@ const Average = () => {
 
 function round(value, decimals) {
     if (value == null) {
-        return "This item is not in Unsold Sx, Goat, or Consigned"
+        return "This SKU + Size was not found in Unsold In House or Unsold Consigned"
     }
     return `Average: $${Number(Math.round(value+'e'+decimals)+'e-'+decimals)}`
    }   
