@@ -167,7 +167,7 @@ export default async (req, res) => {
                     "Title": completeRow["Title"],
                     "Style ID": completeRow["Style ID"], 
                     "Order Number": completeRow["Order Number"], 
-                    "Image": await getImageSx(completeRow["Style ID"])
+                    "Image": `${completeRow["Style ID"]?.length <= 4 ? "": await getImageSx(completeRow["Style ID"])}` //if none, dont get image
                 })
             })
             
