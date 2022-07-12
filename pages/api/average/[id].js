@@ -144,19 +144,21 @@ function cleanUpSize(string){
     string = string.replace(/\D/g,'')
     return string
   }
-
-  let split = string.split(" ")
+  if (string){
+    let split = string.split(" ")
   
-  let res 
-  let resultFound = false
-
-  split.forEach(item => {
-    if (hasNumber(item) && !resultFound) {
-      res = removeAlpha(item)
-      resultFound = true
-    }
-  })
-  return res
+    let res 
+    let resultFound = false
+  
+    split.forEach(item => {
+      if (hasNumber(item) && !resultFound) {
+        res = removeAlpha(item)
+        resultFound = true
+      }
+    })
+    return res
+  }
+  return string
 }
 
 function cleanUpId(styleId, size) {
