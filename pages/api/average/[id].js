@@ -45,7 +45,7 @@ async function readSheets(styleIdsize){
         data.styleId = row['Style ID']
         data.size = row['Size']
         data.total = row['Total Payment']
-        data.total = row['Sub Total']
+        // data.total = row['Sub Total']
         unsoldInHouseRaw.push(data)
     })
 
@@ -191,6 +191,8 @@ export default async (req, res) => {
       let split = id.split("@")
       let styleId = split[0]
       let size = split[1]
+      console.log("🚀 ~ file: [id].js ~ line 194 ~ styleid, size", styleId, " ", size)
+      
 
       let cleanId = cleanUpId(styleId, size) //combined styleid + size into 1 clean string
       console.log("🚀 ~ file: [id].js ~ line 172 ~ cleanId", cleanId)
