@@ -225,7 +225,7 @@ export function largeScaleParseStockXSold(_string, subject, date){
 
     export async function lookForMatchStockXSold(doc, _fineParseStockXSoldList){
         await doc.loadInfo();
-        let unsoldStockX = doc.sheetsByTitle["Unsold SX"]
+        let unsoldStockX = doc.sheetsByTitle["Unsold In House"]
         let soldSheet = doc.sheetsByTitle["Sold"]
         const rows = await unsoldStockX.getRows()
         const rowsSold = await soldSheet.getRows()
@@ -243,7 +243,7 @@ export function largeScaleParseStockXSold(_string, subject, date){
         rows.forEach(async (row, index) => {
             let cleanStyleIdSheet = cleanUpStyleId(row['Style ID'])
             let cleanSizeSheet = cleanUpSize(row['Size'])
-            if (_fineParseStockXSoldList_CLEAN_styleId_Size?.includes(cleanStyleIdSheet+cleanSizeSheet)){
+            if (_fineParseStockXSoldList_CLEAN_styleId_Size?.includes(cleanStyleIdSheet+cleanSizeSheet) && cleanStyleIdSheet != "None" && cleanStyleIdSheet != ""){
                 console.log("StockX Sold Email StyleId + Size matches Unsold Consigned entry at row: ", index)
                 let indexItem = _fineParseStockXSoldList_CLEAN_styleId_Size?.indexOf(cleanStyleIdSheet+cleanSizeSheet)
                 let fullItem = _fineParseStockXSoldList[indexItem]
@@ -522,7 +522,6 @@ export async function updatePayoutDateInSoldSheet(doc, _fineParseAliasComplete){
             rows[index]["Calc Average"] = rows[index]["Calc Average"].formula
             rows[index].save()
         }
-
     })
 }
 

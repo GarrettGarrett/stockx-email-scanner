@@ -1365,6 +1365,7 @@ export default async (req, res) => {
             }
 
             if (_fineParseStockXPayoutList?.length > 0) {
+              console.log("🚀 ~ file: emailV2.js ~ line 1368 ~ _fineParseStockXPayoutList", _fineParseStockXPayoutList)
               // if order# match in sold sheet, update payout date
               // send discord webhook
               let _updatePayoutDateInSoldSheet = await updatePayoutDateInSoldSheet(doc, _fineParseStockXPayoutList)
